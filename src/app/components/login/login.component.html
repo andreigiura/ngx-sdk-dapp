@@ -1,0 +1,57 @@
+
+
+
+
+        <div class="card" >
+            <div class="card-header">
+                <fa-icon [icon]="faAngular" class="text-danger"> </fa-icon>Angular Example DApp
+              </div>
+            <div class="card-body bg-light">
+              <h5 class="card-title text-center mb-5">This is an MultiversX DApp sample.</h5>
+              <h6 class="card-subtitle mb-2 text-muted text-center ">Pick a login method</h6>
+              <div class="d-flex flex-wrap justify-content-center">
+                <button
+                style="min-width: 150px;"
+                type="button"
+                *ngIf="!authService.isAuthenticated()"
+                class="btn btn-primary me-2 m-1"
+                (click)="connectBtnHandler(allProviders.Extension)"
+              >
+                Extension Login
+              </button>
+
+              <button
+              style="min-width: 150px;"
+              ngbTooltip="Provider not implemented"
+                type="button"
+                class="btn btn-secondary me-2 m-1"
+              >
+                Ledger
+              </button>
+
+              <div class="d-flex flex-wrap justify-content-center">
+                <button
+                style="min-width: 150px;"
+                type="button"
+                *ngIf="!authService.isAuthenticated()"
+                class="btn btn-primary me-2 m-1"
+                (click)="connectBtnHandler(allProviders.WebWallet)"
+              >
+                Web Wallet
+              </button>
+
+              <button
+              ngbTooltip="Provider not implemented"
+              style="min-width: 150px;"
+                type="button"
+                class="btn btn-secondary me-2 m-1"
+              >
+                xPortal
+              </button>
+
+              </div>
+            </div>
+          </div>
+
+
+        

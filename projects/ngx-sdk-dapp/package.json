@@ -1,0 +1,13 @@
+{
+  "name": "ngx-sdk-dapp",
+  "version": "0.0.1",
+  "peerDependencies": {
+    "@ngxs/store": "^3.7.6",
+    "@angular/common": "15.2.1",
+    "@angular/core": "15.2.1"
+  },
+  "dependencies": {
+    "tslib": "^2.3.0"
+  },
+  "sideEffects": false
+}

@@ -1,0 +1,33 @@
+<div class="table-responsive">
+    <div *ngIf="!transactions.length" class="text-center mt-5">
+         <h1>  <fa-icon [icon]="faTxArrows"> </fa-icon> No transactions found</h1>
+    </div>
+<table class="table" *ngIf="transactions.length">
+    <thead>
+        <tr>
+        <th scope="col">Tx hash</th>
+        <th scope="col">Age</th>
+        <th scope="col">Shard</th>
+        <th scope="col">From</th>
+        <th scope="col">To</th>
+        <th scope="col">Method</th>
+        <th scope="col">Value</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr *ngFor="let tx of transactions">
+        <td class="text-nowrap"><a href="{{explorerURL}}/transactions/{{tx.txHash}}" target="_blank">{{tx.txHash | trimStr}}</a></td>
+        <td class="text-nowrap">{{tx.timestamp | timeAgo}}</td>
+        <td class="text-nowrap"><a href="{{explorerURL}}/transactions?sendershard={{tx.senderShard}}" target="_blank">Shard {{tx.senderShard}}</a> ->  <a href="{{explorerURL}}/transactions?sendershard={{tx.receiverShard}}" target="_blank">Shard {{tx.receiverShard}}</a></td>
+        <td class="text-nowrap"><a href="{{explorerURL}}/accounts/{{tx.sender}}" target="_blank">{{tx.sender | trimStr}}</a></td>
+        <td class="text-nowrap">
+            <fa-icon *ngIf="isContract(tx.receiver)" [icon]="faFileContract"> </fa-icon>   
+            <a href="{{explorerURL}}/accounts/{{tx.receiver}}" target="_blank">
+            {{ tx.receiver | trimStr}}</a></td>
+        <td class="text-nowrap"><span class="badge bg-secondary" style="min-width: 50px;">{{tx.function | titlecase}}</span></td>
+        <td class="text-nowrap">{{tx.value | formatAmount}} {{egldLabel}}</td>
+        </tr>
+
+    </tbody>
+</table>
+</div>

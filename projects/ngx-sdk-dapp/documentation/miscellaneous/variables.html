@@ -1,0 +1,478 @@
+<!doctype html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title>ngx-sdk-dapp documentation</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link rel="icon" type="image/x-icon" href="../images/favicon.ico">
+	   <link rel="stylesheet" href="../styles/style.css">
+        <link rel="stylesheet" href="../styles/dark.css">
+    </head>
+    <body>
+
+        <div class="navbar navbar-default navbar-fixed-top visible-xs">
+            <a href="../" class="navbar-brand">ngx-sdk-dapp documentation</a>
+            <button type="button" class="btn btn-default btn-menu ion-ios-menu" id="btn-menu"></button>
+        </div>
+
+        <div class="xs-menu menu" id="mobile-menu">
+                <div id="book-search-input" role="search"><input type="text" placeholder="Type to search"></div>            <compodoc-menu></compodoc-menu>
+        </div>
+
+        <div class="container-fluid main">
+           <div class="row main">
+               <div class="hidden-xs menu">
+                   <compodoc-menu mode="normal"></compodoc-menu>
+               </div>
+               <!-- START CONTENT -->
+               <div class="content miscellaneous-variables">
+                   <div class="content-data">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<ol class="breadcrumb">
+  <li>Miscellaneous</li>
+  <li>Variables</li>
+</ol>
+
+<section>
+    <h3 id="index">Index</h3>
+    <table class="table table-sm table-bordered index-table">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <ul class="index-list">
+                        <li>
+                            <a href="#AccountInitialState" title="src/lib/ngxs/account/account.slice.ts" ><b>AccountInitialState</b>&nbsp;&nbsp;&nbsp;(src/.../account.slice.ts)</a>
+                        </li>
+                        <li>
+                            <a href="#canActivateRoute" title="src/lib/helpers/canActivate.ts" ><b>canActivateRoute</b>&nbsp;&nbsp;&nbsp;(src/.../canActivate.ts)</a>
+                        </li>
+                        <li>
+                            <a href="#DECIMALS" title="src/lib/constants.ts" ><b>DECIMALS</b>&nbsp;&nbsp;&nbsp;(src/.../constants.ts)</a>
+                        </li>
+                        <li>
+                            <a href="#decodeLoginToken" title="src/lib/helpers/decodeLoginToken.ts" ><b>decodeLoginToken</b>&nbsp;&nbsp;&nbsp;(src/.../decodeLoginToken.ts)</a>
+                        </li>
+                        <li>
+                            <a href="#decodeNativeAuthToken" title="src/lib/helpers/decodeNativeAuthToken.ts" ><b>decodeNativeAuthToken</b>&nbsp;&nbsp;&nbsp;(src/.../decodeNativeAuthToken.ts)</a>
+                        </li>
+                        <li>
+                            <a href="#DIGITS" title="src/lib/constants.ts" ><b>DIGITS</b>&nbsp;&nbsp;&nbsp;(src/.../constants.ts)</a>
+                        </li>
+                        <li>
+                            <a href="#stringIsInteger" title="src/lib/helpers/stringIsInteger.ts" ><b>stringIsInteger</b>&nbsp;&nbsp;&nbsp;(src/.../stringIsInteger.ts)</a>
+                        </li>
+                        <li>
+                            <a href="#ZERO" title="src/lib/constants.ts" ><b>ZERO</b>&nbsp;&nbsp;&nbsp;(src/.../constants.ts)</a>
+                        </li>
+                    </ul>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+
+    <h3>src/lib/ngxs/account/account.slice.ts</h3>
+    <section>
+    <h3></h3>    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="AccountInitialState"></a>
+                    <span class="name">
+                        <span ><b>AccountInitialState</b></span>
+                        <a href="#AccountInitialState"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/object" target="_blank" >object</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>{
+  address: &#x27;&#x27;,
+  accessToken: &#x27;&#x27;,
+  currentProvider: ProvidersType.EMPTY,
+  shard: null,
+  balance: &#x27;&#x27;,
+  loginTimestamp: 0,
+}</code>
+                    </td>
+                </tr>
+
+
+        </tbody>
+    </table>
+</section>
+    <h3>src/lib/helpers/canActivate.ts</h3>
+    <section>
+    <h3></h3>    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="canActivateRoute"></a>
+                    <span class="name">
+                        <span ><b>canActivateRoute</b></span>
+                        <a href="#canActivateRoute"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>CanActivateFn</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>(
+  route: ActivatedRouteSnapshot,
+  state: RouterStateSnapshot
+) &#x3D;&gt; {
+  const isAuthenticated &#x3D; inject(AuthenticationService).isAuthenticated();
+  if (!isAuthenticated) {
+    const router &#x3D; inject(Router);
+
+    inject(AccountService).resetToInitialState();
+    router.navigate([&#x27;/&#x27;]);
+  }
+  return isAuthenticated;
+}</code>
+                    </td>
+                </tr>
+
+
+        </tbody>
+    </table>
+</section>
+    <h3>src/lib/constants.ts</h3>
+    <section>
+    <h3></h3>    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="DECIMALS"></a>
+                    <span class="name">
+                        <span ><b>DECIMALS</b></span>
+                        <a href="#DECIMALS"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>18</code>
+                    </td>
+                </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="DIGITS"></a>
+                    <span class="name">
+                        <span ><b>DIGITS</b></span>
+                        <a href="#DIGITS"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>4</code>
+                    </td>
+                </tr>
+
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="ZERO"></a>
+                    <span class="name">
+                        <span ><b>ZERO</b></span>
+                        <a href="#ZERO"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>&#x27;0&#x27;</code>
+                    </td>
+                </tr>
+
+
+        </tbody>
+    </table>
+</section>
+    <h3>src/lib/helpers/decodeLoginToken.ts</h3>
+    <section>
+    <h3></h3>    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="decodeLoginToken"></a>
+                    <span class="name">
+                        <span ><b>decodeLoginToken</b></span>
+                        <a href="#decodeLoginToken"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>(
+  loginToken: string
+): DecodedLoginTokenType | null &#x3D;&gt; {
+  if (!loginToken || !isString(loginToken)) {
+    return null;
+  }
+
+  const parts &#x3D; loginToken.split(&#x27;.&#x27;);
+
+  if (parts.length !&#x3D;&#x3D; 4) {
+    console.error(
+      &#x27;Invalid loginToken. You may be trying to decode a nativeAuthToken. Try using decodeNativeAuthToken method instead&#x27;
+    );
+
+    return null;
+  }
+
+  try {
+    const [origin, blockHash, ttl, extraInfo] &#x3D; parts;
+    const parsedExtraInfo &#x3D; JSON.parse(decodeBase64(extraInfo));
+    const parsedOrigin &#x3D; decodeBase64(origin);
+
+    return {
+      ttl: Number(ttl),
+      extraInfo: parsedExtraInfo,
+      origin: parsedOrigin,
+      blockHash,
+    };
+  } catch (e) {
+    console.error(&#x60;Error trying to decode ${loginToken}:&#x60;, e);
+
+    return null;
+  }
+}</code>
+                    </td>
+                </tr>
+
+
+        </tbody>
+    </table>
+</section>
+    <h3>src/lib/helpers/decodeNativeAuthToken.ts</h3>
+    <section>
+    <h3></h3>    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="decodeNativeAuthToken"></a>
+                    <span class="name">
+                        <span ><b>decodeNativeAuthToken</b></span>
+                        <a href="#decodeNativeAuthToken"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>(
+  accessToken?: string
+): DecodedNativeAuthTokenType | null &#x3D;&gt; {
+  if (!accessToken || !isString(accessToken)) {
+    return null;
+  }
+
+  const parts &#x3D; accessToken.split(&#x27;.&#x27;);
+
+  if (parts.length !&#x3D;&#x3D; 3) {
+    console.error(
+      &#x27;Invalid nativeAuthToken. You may be trying to decode a loginToken. Try using decodeLoginToken method instead&#x27;
+    );
+
+    return null;
+  }
+
+  try {
+    const [address, body, signature] &#x3D; parts;
+    const parsedAddress &#x3D; decodeBase64(address);
+    const parsedBody &#x3D; decodeBase64(body);
+    const parsedInitToken &#x3D; decodeLoginToken(parsedBody);
+
+    if (!parsedInitToken) {
+      return {
+        address: parsedAddress,
+        body: parsedBody,
+        signature,
+        blockHash: &#x27;&#x27;,
+        origin: &#x27;&#x27;,
+        ttl: 0,
+      };
+    }
+
+    const result &#x3D; {
+      ...parsedInitToken,
+      address: parsedAddress,
+      body: parsedBody,
+      signature,
+    };
+
+    // if empty object, delete extraInfo
+    if (!parsedInitToken.extraInfo?.timestamp) {
+      delete result.extraInfo;
+    }
+
+    return result;
+  } catch (err) {
+    return null;
+  }
+}</code>
+                    </td>
+                </tr>
+
+
+        </tbody>
+    </table>
+</section>
+    <h3>src/lib/helpers/stringIsInteger.ts</h3>
+    <section>
+    <h3></h3>    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="stringIsInteger"></a>
+                    <span class="name">
+                        <span ><b>stringIsInteger</b></span>
+                        <a href="#stringIsInteger"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>(
+  integer: string,
+  positiveNumbersOnly &#x3D; true
+) &#x3D;&gt; {
+  const stringInteger &#x3D; String(integer);
+  if (!stringInteger.match(/^[-]?\d+$/)) {
+    return false;
+  }
+  const bNparsed &#x3D; new BigNumber(stringInteger);
+  const limit &#x3D; positiveNumbersOnly ? 0 : -1;
+  return (
+    bNparsed.toString(10) &#x3D;&#x3D;&#x3D; stringInteger &amp;&amp; bNparsed.comparedTo(0) &gt;&#x3D; limit
+  );
+}</code>
+                    </td>
+                </tr>
+
+
+        </tbody>
+    </table>
+</section>
+
+
+
+                   </div><div class="search-results">
+    <div class="has-results">
+        <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
+        <ul class="search-results-list"></ul>
+    </div>
+    <div class="no-results">
+        <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+    </div>
+</div>
+</div>
+               <!-- END CONTENT -->
+           </div>
+       </div>
+
+          <label class="dark-mode-switch">
+               <input type="checkbox">
+               <span class="slider">
+                    <svg class="slider-icon" viewBox="0 0 24 24" fill="none" height="20" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" width="20" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"></path>
+                    </svg>
+               </span>
+          </label>
+
+       <script>
+            var COMPODOC_CURRENT_PAGE_DEPTH = 1;
+            var COMPODOC_CURRENT_PAGE_CONTEXT = 'miscellaneous-variables';
+            var COMPODOC_CURRENT_PAGE_URL = 'variables.html';
+            var MAX_SEARCH_RESULTS = 15;
+       </script>
+
+       <script src="../js/libs/custom-elements.min.js"></script>
+       <script src="../js/libs/lit-html.js"></script>
+
+       <script src="../js/menu-wc.js" defer></script>
+       <script nomodule src="../js/menu-wc_es5.js" defer></script>
+
+       <script src="../js/libs/bootstrap-native.js"></script>
+
+       <script src="../js/libs/es6-shim.min.js"></script>
+       <script src="../js/libs/EventDispatcher.js"></script>
+       <script src="../js/libs/promise.min.js"></script>
+       <script src="../js/libs/zepto.min.js"></script>
+
+       <script src="../js/compodoc.js"></script>
+
+       <script src="../js/tabs.js"></script>
+       <script src="../js/menu.js"></script>
+       <script src="../js/libs/clipboard.min.js"></script>
+       <script src="../js/libs/prism.js"></script>
+       <script src="../js/sourceCode.js"></script>
+          <script src="../js/search/search.js"></script>
+          <script src="../js/search/lunr.min.js"></script>
+          <script src="../js/search/search-lunr.js"></script>
+          <script src="../js/search/search_index.js"></script>
+       <script src="../js/lazy-load-graphs.js"></script>
+
+
+    </body>
+</html>

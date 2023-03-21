@@ -1,0 +1,82 @@
+<ng-template #TxToastTemplate let-toast>
+
+    <div class="border-bottom mb-3 d-flex justify-content-between py-2">
+      <h6>{{toast.header}}</h6> 
+      <button *ngIf="toast.status !== TxStatusEnum.SEND_IN_PROGRESS" class="btn btn-outline-primary" (click)="transactionsService.remove(toast.id)">Close</button>
+    </div>
+
+    <container-element [ngSwitch]="toast.status">
+      <!-- Transactions signature failed -->
+    <div *ngSwitchCase="TxStatusEnum.SIGNATURE_FAILED">
+      <fa-icon [icon]="faCircleX" class="text-danger"/> TRANSACTION SIGNATURE FAILED
+    </div>
+
+
+    <!-- Transactions Canceled -->
+    <div *ngSwitchCase ="TxStatusEnum.CANCELLED">
+      <fa-icon [icon]="faCircleExclamation" class="text-warning"/> TRANSACTION CANCELED
+    </div>
+
+
+    <!-- Transactions Send error -->
+    <div *ngSwitchCase="TxStatusEnum.SENT_ERROR">
+      <div *ngIf="!toast.transactionsInfo || toast.transactionsInfo.length === 0">
+        <fa-icon [icon]="faCircleX" class="text-danger" /> SOME ERROR OCCURED DURING TRANSACTION SEND
+      </div>
+
+      <div *ngIf="toast.transactionsInfo || toast.transactionsInfo.length > 0"></div>
+      <div *ngFor= "let txInfo of toast.transactionsInfo">
+        <container-element [ngSwitch]="txInfo.status">
+          <div *ngSwitchCase="TxStatusEnum.SEND_IN_PROGRESS">{{txInfo.status}}<fa-icon [icon]="faCircleDashed" class="text-warning"/> Tx hash: <a target="_blank" href="{{explorerURL}}/transactions/{{txInfo.txHash}}">{{txInfo.txHash}} </a></div>
+          <div *ngSwitchCase="TxStatusEnum.SENT_SUCCESS"><fa-icon [icon]="faCircleCheck" class="text-success"/> Tx hash: <a target="_blank" href="{{explorerURL}}/transactions/{{txInfo.txHash}}">{{txInfo.txHash}} </a></div>
+          <div *ngSwitchCase="TxStatusEnum.SENT_ERROR"><fa-icon [icon]="faCircleX" class="text-danger"/> Tx hash: <a target="_blank" href="{{explorerURL}}/transactions/{{txInfo.txHash}}">{{txInfo.txHash}}</a></div>
+        </container-element>
+      </div>
+    </div>
+
+
+    <!-- Transactions Send error -->
+    <div *ngSwitchCase="TxStatusEnum.SENT_SUCCESS">
+      <div *ngIf="toast.transactionsInfo || toast.transactionsInfo.length > 0"></div>
+      <div *ngFor= "let txInfo of toast.transactionsInfo">
+        <div><fa-icon [icon]="faCircleCheck" class="text-success"/> Tx hash: <a target="_blank" href="{{explorerURL}}/transactions/{{txInfo.txHash}}">{{txInfo.txHash}} </a></div>
+      </div>
+    </div>
+
+  
+    <!-- Transactions processing -->
+    <div *ngSwitchCase="TxStatusEnum.SEND_IN_PROGRESS">
+      <div *ngFor= "let txInfo of toast.transactionsInfo">
+        <container-element [ngSwitch]="txInfo.status">
+          <div *ngSwitchCase="TxStatusEnum.SEND_IN_PROGRESS"><fa-icon [icon]="faCircleDashed" class="text-warning"/> Tx hash: <a target="_blank" href="{{explorerURL}}/transactions/{{txInfo.txHash}}">{{txInfo.txHash}} </a></div>
+          <div *ngSwitchCase="TxStatusEnum.SENT_SUCCESS"><fa-icon [icon]="faCircleCheck" class="text-success"/> Tx hash: <a target="_blank" href="{{explorerURL}}/transactions/{{txInfo.txHash}}">{{txInfo.txHash}} </a></div>
+          <div *ngSwitchCase="TxStatusEnum.SENT_ERROR"><fa-icon [icon]="faCircleX" class="text-danger"/> Tx hash: <a target="_blank" href="{{explorerURL}}/transactions/{{txInfo.txHash}}">{{txInfo.txHash}}</a></div>
+        </container-element>
+      </div>
+    </div>
+
+    </container-element>
+
+    <ngb-progressbar
+    class="mt-1"
+    *ngIf="toast.status === TxStatusEnum.SEND_IN_PROGRESS"
+    type="warning"
+    [value]="100"
+    [striped]="true"
+    [animated]="true"
+    >
+        <i>Processing</i>
+    </ngb-progressbar>
+</ng-template>
+
+
+<!-- transactions toasts -->
+<ngb-toast
+  aria-live="polite" 
+  aria-atomic="true"
+  *ngFor="let toast of transactionsService.toasts"
+   [autohide]="false"
+  class="mt-2"
+>
+<ng-container *ngTemplateOutlet="toast.templateRef; context: {$implicit: toast}"></ng-container>
+</ngb-toast>

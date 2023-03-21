@@ -1,0 +1,37 @@
+<div class="row">
+  <div class="col-md-10 offset-md-1">
+
+      <div class="card" >
+        <div class="card-header text-white bg-primary">
+          <h6 class="card-title ">Logged in with: {{accountService.account.currentProvider}}</h6>
+      </div>
+          <div class="card-body bg-primary">
+            <p class="card-title text-center text-light font-weight-bold">Your address on shard {{accountService.account.shard}}:</p>
+            <p class="card-title text-center text-light">{{accountService.account.address}}</p>
+
+            <p class="card-title text-center text-light mt-5 font-weight-bold">Contract address:</p>
+            <p class="card-title text-center text-light">{{contractAddress}}</p>
+
+
+            <h3 class="card-subtitle mb-2 mt-5 text-light text-center ">{{accountService.account.balance | formatAmount }} {{egldLabel}}</h3>
+
+            <div class="mt-5 d-flex justify-content-center">
+              <button *ngIf="hasPing"  type="button" class="btn btn-outline-light" (click)="sendPingTx()" [disabled]="transactionInProgress"><fa-icon [icon]="faArrowUp"> </fa-icon> Ping</button>
+              <button *ngIf="!hasPing"  type="button" class="btn btn-outline-light" (click)="sendPongTx()" [disabled]="secondsRemaining || transactionInProgress">
+                <fa-icon [icon]="faArrowDown"> </fa-icon> 
+                <span *ngIf="secondsRemaining"> Time until you can pong: {{secondsRemaining * 1000 | date:'mm:ss'}}</span>
+                <span *ngIf="!secondsRemaining"> Pong</span>
+              </button>
+            </div>
+
+          </div>
+
+          
+        </div>
+  </div>
+
+  <div class="col-md-10 offset-md-1 mt-5">
+    <app-transactions-table></app-transactions-table>
+  </div>
+  
+</div>
