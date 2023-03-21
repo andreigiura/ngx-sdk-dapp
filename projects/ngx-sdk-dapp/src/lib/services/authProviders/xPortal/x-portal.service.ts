@@ -4,12 +4,27 @@ import { Store } from '@ngxs/store';
 import { DappConfig, DAPP_CONFIG } from '../../../config';
 import { AccountService } from '../../account/account.service';
 import { AuthenticationService } from '../../authentication/authentication.service';
-import { GenericProvider } from '../genericProvider';
+import { GenericProvider, ProvidersType } from '../genericProvider';
+import { WalletConnectV2Provider } from '@multiversx/sdk-wallet-connect-provider';
+import { NativeAuthClient } from '@multiversx/sdk-native-auth-client';
+import type {
+  SessionEventTypes,
+  SessionTypes,
+} from '@multiversx/sdk-wallet-connect-provider/out/walletConnectV2Provider';
+import { Observable } from 'rxjs';
+import { LoginAccount } from '../../../ngxs/account/account.actions';
+import { IPlainTransactionObject, Transaction } from '@multiversx/sdk-core/out';
 
 @Injectable({
   providedIn: 'root',
 })
 export class XPortalProviderService extends GenericProvider {
+  private walletConnect: WalletConnectV2Provider | undefined;
+  private userResponseObservable: Observable<string> | undefined;
+  private navAfterConnectRoute: string | undefined;
+  private initToken: string | undefined;
+  private localStore: Store;
+
   constructor(
     store: Store,
     accountService: AccountService,
@@ -18,17 +33,159 @@ export class XPortalProviderService extends GenericProvider {
     private router: Router
   ) {
     super(store, accountService, authenticationService, config);
+    this.localStore = store;
   }
 
-  override connect(navAfterConnectRoute?: string): Promise<any> {
-    throw new Error('Method not implemented.');
+  override async connect(navAfterConnectRoute: string): Promise<{
+    client: NativeAuthClient;
+    init: string;
+    qrCodeStr: string;
+    approval: any;
+    token: string;
+  }> {
+    const { client, init } = await super.connect(navAfterConnectRoute);
+    this.initToken = init;
+    this.navAfterConnectRoute = navAfterConnectRoute;
+
+    this.walletConnect = new WalletConnectV2Provider(
+      {
+        onClientLogin: this.onClientLogin,
+        onClientLogout: this.onClientLogout,
+        onClientEvent: this.onClientEvent,
+      },
+      this.config.chainID,
+      this.config.walletConnectV2RelayAddresses[0],
+      this.config.walletConnectV2ProjectId
+    );
+
+    await this.walletConnect.init();
+    const { uri, approval } = await this.walletConnect.connect();
+    if (!uri) {
+      throw new Error('WalletConnect could not be initialized');
+    }
+    let walletConectUriWithToken = uri;
+    walletConectUriWithToken = `${walletConectUriWithToken}&token=${init}`;
+
+    this.awaitUserConnectionResponse({
+      approval,
+      token: init,
+    });
+
+    return {
+      client,
+      init,
+      qrCodeStr: walletConectUriWithToken,
+      approval,
+      token: init,
+    };
   }
 
-  override logout(): Promise<boolean> {
-    throw new Error('Method not implemented.');
+  public async awaitUserConnectionResponse({
+    approval,
+    token,
+  }: {
+    approval: any;
+    token: string;
+  }) {
+    try {
+      await this.walletConnect?.login({ approval, token });
+      this.userResponseObservable = new Observable((subscriber) => {
+        subscriber.complete();
+      });
+    } catch (error) {
+      this.userResponseObservable = new Observable((subscriber) => {
+        subscriber.next('rejected');
+        subscriber.complete();
+        this.walletConnect?.logout();
+      });
+    }
+
+    return this.userResponseObservable;
   }
 
-  reinitialize(): void {
-    throw new Error('Method not implemented.');
+  private onClientLogin = () => {
+    if (!this.initToken) {
+      throw new Error('No init token found');
+    }
+
+    this.walletConnect?.getSignature().then((signature) => {
+      this.walletConnect?.getAddress().then((address) => {
+        const accessToken = new NativeAuthClient().getToken(
+          address,
+          this.initToken!,
+          signature
+        );
+        this.localStore.dispatch(
+          new LoginAccount({
+            address,
+            accessToken,
+            currentProvider: ProvidersType.XPortal,
+          })
+        );
+        if (this.navAfterConnectRoute)
+          this.router.navigate([this.navAfterConnectRoute]);
+      });
+    });
+  };
+
+  private onClientLogout = () => {
+    this.logout();
+  };
+
+  private onClientEvent = (event: SessionEventTypes['event']) => {};
+
+  override async logout(): Promise<boolean> {
+    if (!this.walletConnect) return super.logout();
+
+    const connected = await this.walletConnect.isConnected();
+    if (connected) this.walletConnect.logout();
+
+    this.router.navigate(['/']);
+    return super.logout();
+  }
+
+  override async sendTransactions(
+    transactions: IPlainTransactionObject[],
+    txId: number
+  ): Promise<void> {
+    const txArray = transactions.map((tx) => {
+      const tx1 = Transaction.fromPlainObject(tx);
+      return tx1;
+    });
+    try {
+      const result = await this.walletConnect?.signTransactions(txArray);
+
+      if (!result) return this.addToCancelledTransaction(txId);
+
+      this.addSignedTransactionsToState(
+        result.map((tx) => tx.toPlainObject()),
+        txId
+      );
+    } catch (error) {}
+  }
+
+  override async reInitialize(): Promise<string> {
+    this.walletConnect = new WalletConnectV2Provider(
+      {
+        onClientLogin: this.onClientLogin,
+        onClientLogout: this.onClientLogout,
+        onClientEvent: this.onClientEvent,
+      },
+      this.config.chainID,
+      this.config.walletConnectV2RelayAddresses[0],
+      this.config.walletConnectV2ProjectId
+    );
+
+    try {
+      await this.walletConnect.init();
+      const connected = await this.walletConnect.isConnected();
+
+      if (!connected) this.logout();
+    } catch (error) {
+      this.logout();
+    }
+
+    return '';
+    // throw new Error('Method not implemented.');
   }
 }

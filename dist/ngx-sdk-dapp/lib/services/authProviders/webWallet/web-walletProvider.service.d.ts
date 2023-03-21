@@ -20,7 +20,7 @@ export declare class WebWalletProviderService extends GenericProvider {
     private transactionsCancelledCallback;
     private transactionsSuccessCallback;
     private connectCallback;
-    connect(navAfterConnectRoute?: string): Promise<{
+    connect(navAfterConnectRoute: string): Promise<{
         client: NativeAuthClient;
         init: string;
     }>;

@@ -8,6 +8,7 @@ import { AuthenticationService } from '../authentication/authentication.service'
 export declare enum ProvidersType {
     Extension = "Extension",
     WebWallet = "WebWallet",
+    XPortal = "XPortal",
     EMPTY = ""
 }
 /**
@@ -19,7 +20,7 @@ export declare class GenericProvider {
     private authenticationService;
     config: DappConfig;
     constructor(store: Store, accountService: AccountService, authenticationService: AuthenticationService, config: DappConfig);
-    connect(navAfterConnectRoute?: string): Promise<{
+    connect(navAfterConnectRoute: string): Promise<{
         client: NativeAuthClient;
         init: string;
     }>;

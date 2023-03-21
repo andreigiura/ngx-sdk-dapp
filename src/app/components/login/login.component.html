@@ -1,59 +1,91 @@
+<div class="card">
+  <div class="card-header">
+    <fa-icon [icon]="faAngular" class="text-danger"> </fa-icon>Angular Example
+    DApp
+  </div>
+  <div *ngIf="!qrCodeStr" class="card-body bg-light">
+    <h5 class="card-title text-center mb-5">
+      This is an MultiversX DApp sample.
+    </h5>
+    <h6 class="card-subtitle mb-2 text-muted text-center">
+      Pick a login method
+    </h6>
+    <div class="d-flex flex-wrap justify-content-center">
+      <button
+        style="min-width: 150px"
+        type="button"
+        *ngIf="!authService.isAuthenticated()"
+        class="btn btn-primary me-2 m-1"
+        (click)="connectBtnHandler(allProviders.Extension)"
+      >
+        Extension Login
+      </button>
 
+      <button
+        style="min-width: 150px"
+        ngbTooltip="Provider not implemented"
+        type="button"
+        class="btn btn-secondary me-2 m-1"
+      >
+        Ledger
+      </button>
 
+      <button
+        style="min-width: 150px"
+        type="button"
+        *ngIf="!authService.isAuthenticated()"
+        class="btn btn-primary me-2 m-1"
+        (click)="connectBtnHandler(allProviders.WebWallet)"
+      >
+        Web Wallet
+      </button>
 
+      <div class="d-flex flex-wrap justify-content-center">
+        <button
+          style="min-width: 150px"
+          type="button"
+          *ngIf="!authService.isAuthenticated()"
+          class="btn btn-primary me-2 m-1"
+          (click)="connectBtnHandler(allProviders.XPortal)"
+        >
+          Web xPortal
+        </button>
+      </div>
+    </div>
+  </div>
+  <div *ngIf="qrCodeStr">
+    <div class="d-flex justify-content-center mt-4">
+      Login using xPoartal App
+    </div>
+    <div class="d-flex justify-content-center mt-2">
+      <qrcode
+        *ngIf="qrCodeStr"
+        [qrdata]="qrCodeStr"
+        [width]="256"
+        [errorCorrectionLevel]="'M'"
+        >test</qrcode
+      >
+    </div>
+    <div class="d-flex justify-content-center mt-2">
+      <button
+        class="btn btn-primary"
+        (click)="qrCodeStr = undefined; xPortalError = undefined"
+      >
+        Cancel
+      </button>
+    </div>
 
-        <div class="card" >
-            <div class="card-header">
-                <fa-icon [icon]="faAngular" class="text-danger"> </fa-icon>Angular Example DApp
-              </div>
-            <div class="card-body bg-light">
-              <h5 class="card-title text-center mb-5">This is an MultiversX DApp sample.</h5>
-              <h6 class="card-subtitle mb-2 text-muted text-center ">Pick a login method</h6>
-              <div class="d-flex flex-wrap justify-content-center">
-                <button
-                style="min-width: 150px;"
-                type="button"
-                *ngIf="!authService.isAuthenticated()"
-                class="btn btn-primary me-2 m-1"
-                (click)="connectBtnHandler(allProviders.Extension)"
-              >
-                Extension Login
-              </button>
-
-              <button
-              style="min-width: 150px;"
-              ngbTooltip="Provider not implemented"
-                type="button"
-                class="btn btn-secondary me-2 m-1"
-              >
-                Ledger
-              </button>
-
-              <div class="d-flex flex-wrap justify-content-center">
-                <button
-                style="min-width: 150px;"
-                type="button"
-                *ngIf="!authService.isAuthenticated()"
-                class="btn btn-primary me-2 m-1"
-                (click)="connectBtnHandler(allProviders.WebWallet)"
-              >
-                Web Wallet
-              </button>
-
-              <button
-              ngbTooltip="Provider not implemented"
-              style="min-width: 150px;"
-                type="button"
-                class="btn btn-secondary me-2 m-1"
-              >
-                xPortal
-              </button>
-
-              </div>
-            </div>
-
-            <h5 class="text-center mt-3">Open for contributions <a href="https://github.com/andreigiura/ngx-sdk-dapp" target="_blank" >github repo</a></h5>
-          </div>
-
-
-        
+    <div
+      *ngIf="xPortalError"
+      class="d-flex justify-content-center mt-2 text-danger"
+    >
+      {{ xPortalError }}
+    </div>
+  </div>
+  <h5 class="text-center mt-3">
+    Open for contributions
+    <a href="https://github.com/andreigiura/ngx-sdk-dapp" target="_blank"
+      >github repo</a
+    >
+  </h5>
+</div>

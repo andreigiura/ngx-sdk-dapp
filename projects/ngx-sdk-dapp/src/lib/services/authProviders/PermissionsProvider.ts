@@ -24,6 +24,7 @@ export class PermissionsProviderService {
   constructor(
     private extensionProvider: ExtensionProviderService,
     private webWalletProvider: WebWalletProviderService,
+    private xportalProvider: XPortalProviderService,
     accountService: AccountService,
     authService: AuthenticationService
   ) {
@@ -59,6 +60,10 @@ export class PermissionsProviderService {
       case ProvidersType.WebWallet:
         this.provider = this.webWalletProvider;
         break;
+
+      case ProvidersType.XPortal:
+        this.provider = this.xportalProvider;
+        break;
       default:
         this.provider = null;
         break;
@@ -73,7 +78,7 @@ export class PermissionsProviderService {
     this._provider = provider;
   }
 
-  public connect(navAfterConnectRoute?: string): Promise<GenericProvider> {
+  public connect(navAfterConnectRoute: string): Promise<any> {
     if (this._provider) {
       return this._provider.connect(navAfterConnectRoute);
     }

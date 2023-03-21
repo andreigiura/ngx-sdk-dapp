@@ -12,4 +12,7 @@ export interface DappConfig {
   explorerURL: string;
   chainID: string;
   nativeAuthAPIs: AuthApis;
+  walletConnectDeepLink: string;
+  walletConnectV2ProjectId: string;
+  walletConnectV2RelayAddresses: string[];
 }

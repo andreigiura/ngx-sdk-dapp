@@ -5,6 +5,7 @@ export * from './lib/ngxs/account/account-api.service';
 export * from './lib/services/interceptors/nativeAuthTokenInterceptor/native-auth-token-interceptor.service';
 export * from './lib/services/transactions/transactions.service';
 export * from './lib/services/authProviders/PermissionsProvider';
+export * from './lib/services/authProviders/xPortal/x-portal.service';
 export { ProvidersType } from './lib/services/authProviders/genericProvider';
 export { TxStatusEnum } from './lib/types';
 export * from './lib/helpers';

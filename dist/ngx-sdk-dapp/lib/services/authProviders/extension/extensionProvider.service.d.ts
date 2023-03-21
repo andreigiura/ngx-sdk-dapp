@@ -14,7 +14,7 @@ export declare class ExtensionProviderService extends GenericProvider {
     private localStore;
     private localAccount;
     constructor(store: Store, accountService: AccountService, authenticationService: AuthenticationService, config: DappConfig, router: Router);
-    connect(navAfterConnectRoute?: string): Promise<{
+    connect(navAfterConnectRoute: string): Promise<{
         client: NativeAuthClient;
         init: string;
     }>;

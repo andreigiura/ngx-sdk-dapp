@@ -7,7 +7,7 @@ import { STORAGE_ENGINE, NgxsStoragePluginModule } from '@ngxs/storage-plugin';
 import * as i1 from '@ngxs/store';
 import { Select, Action, State, NgxsModule } from '@ngxs/store';
 import { __decorate, __param } from 'tslib';
-import { lastValueFrom, takeWhile, map, skipWhile, take } from 'rxjs';
+import { lastValueFrom, Observable, takeWhile, map, skipWhile, take } from 'rxjs';
 import { NativeAuthClient } from '@multiversx/sdk-native-auth-client';
 import * as i1$1 from '@angular/common/http';
 import { HttpClientModule } from '@angular/common/http';
@@ -20,6 +20,7 @@ import { isString as isString$1 } from 'lodash';
 import { Address as Address$1, TransactionPayload, Transaction } from '@multiversx/sdk-core/out';
 import { ExtensionProvider } from '@multiversx/sdk-extension-provider/out';
 import { WalletProvider } from '@multiversx/sdk-web-wallet-provider/out';
+import { WalletConnectV2Provider } from '@multiversx/sdk-wallet-connect-provider';
 
 const DAPP_CONFIG = new InjectionToken('config');
 
@@ -92,6 +93,7 @@ var ProvidersType;
 (function (ProvidersType) {
     ProvidersType["Extension"] = "Extension";
     ProvidersType["WebWallet"] = "WebWallet";
+    ProvidersType["XPortal"] = "XPortal";
     ProvidersType["EMPTY"] = "";
 })(ProvidersType || (ProvidersType = {}));
 /**
@@ -874,7 +876,7 @@ class ExtensionProviderService extends GenericProvider {
         this.localAccount = accountService;
     }
     async connect(navAfterConnectRoute) {
-        const { client, init } = await super.connect();
+        const { client, init } = await super.connect(navAfterConnectRoute);
         const extensionInstance = ExtensionProvider.getInstance();
         const extensionInitialized = await extensionInstance.init();
         if (!extensionInitialized) {
@@ -994,7 +996,7 @@ class WebWalletProviderService extends GenericProvider {
         });
     }
     async connect(navAfterConnectRoute) {
-        const { client, init } = await super.connect();
+        const { client, init } = await super.connect(navAfterConnectRoute);
         localStorage.setItem('initToken', init);
         localStorage.setItem('navAfterConnectRoute', navAfterConnectRoute || '');
         this.walletProvider = new WalletProvider(`${this.config.walletURL}${DAPP_INIT_ROUTE}`);
@@ -1046,10 +1048,136 @@ i0.ɵɵngDeclareClassMetadata({ minVersion: "12.0.0", version: "15.2.1", ngImpor
                     args: [DAPP_CONFIG]
                 }] }]; } });
 
+class XPortalProviderService extends GenericProvider {
+    constructor(store, accountService, authenticationService, config, router) {
+        super(store, accountService, authenticationService, config);
+        this.config = config;
+        this.router = router;
+        this.onClientLogin = () => {
+            if (!this.initToken) {
+                throw new Error('No init token found');
+            }
+            this.walletConnect?.getSignature().then((signature) => {
+                this.walletConnect?.getAddress().then((address) => {
+                    const accessToken = new NativeAuthClient().getToken(address, this.initToken, signature);
+                    this.localStore.dispatch(new LoginAccount({
+                        address,
+                        accessToken,
+                        currentProvider: ProvidersType.XPortal,
+                    }));
+                    if (this.navAfterConnectRoute)
+                        this.router.navigate([this.navAfterConnectRoute]);
+                });
+            });
+        };
+        this.onClientLogout = () => {
+            this.logout();
+        };
+        this.onClientEvent = (event) => { };
+        this.localStore = store;
+    }
+    async connect(navAfterConnectRoute) {
+        const { client, init } = await super.connect(navAfterConnectRoute);
+        this.initToken = init;
+        this.navAfterConnectRoute = navAfterConnectRoute;
+        this.walletConnect = new WalletConnectV2Provider({
+            onClientLogin: this.onClientLogin,
+            onClientLogout: this.onClientLogout,
+            onClientEvent: this.onClientEvent,
+        }, this.config.chainID, this.config.walletConnectV2RelayAddresses[0], this.config.walletConnectV2ProjectId);
+        await this.walletConnect.init();
+        const { uri, approval } = await this.walletConnect.connect();
+        if (!uri) {
+            throw new Error('WalletConnect could not be initialized');
+        }
+        let walletConectUriWithToken = uri;
+        walletConectUriWithToken = `${walletConectUriWithToken}&token=${init}`;
+        this.awaitUserConnectionResponse({
+            approval,
+            token: init,
+        });
+        return {
+            client,
+            init,
+            qrCodeStr: walletConectUriWithToken,
+            approval,
+            token: init,
+        };
+    }
+    async awaitUserConnectionResponse({ approval, token, }) {
+        try {
+            await this.walletConnect?.login({ approval, token });
+            this.userResponseObservable = new Observable((subscriber) => {
+                subscriber.complete();
+            });
+        }
+        catch (error) {
+            this.userResponseObservable = new Observable((subscriber) => {
+                subscriber.next('rejected');
+                subscriber.complete();
+                this.walletConnect?.logout();
+            });
+        }
+        return this.userResponseObservable;
+    }
+    async logout() {
+        if (!this.walletConnect)
+            return super.logout();
+        const connected = await this.walletConnect.isConnected();
+        if (connected)
+            this.walletConnect.logout();
+        this.router.navigate(['/']);
+        return super.logout();
+    }
+    async sendTransactions(transactions, txId) {
+        const txArray = transactions.map((tx) => {
+            const tx1 = Transaction.fromPlainObject(tx);
+            return tx1;
+        });
+        try {
+            const result = await this.walletConnect?.signTransactions(txArray);
+            if (!result)
+                return this.addToCancelledTransaction(txId);
+            this.addSignedTransactionsToState(result.map((tx) => tx.toPlainObject()), txId);
+        }
+        catch (error) { }
+    }
+    async reInitialize() {
+        this.walletConnect = new WalletConnectV2Provider({
+            onClientLogin: this.onClientLogin,
+            onClientLogout: this.onClientLogout,
+            onClientEvent: this.onClientEvent,
+        }, this.config.chainID, this.config.walletConnectV2RelayAddresses[0], this.config.walletConnectV2ProjectId);
+        try {
+            await this.walletConnect.init();
+            const connected = await this.walletConnect.isConnected();
+            if (!connected)
+                this.logout();
+        }
+        catch (error) {
+            this.logout();
+        }
+        return '';
+        // throw new Error('Method not implemented.');
+    }
+}
+XPortalProviderService.ɵfac = i0.ɵɵngDeclareFactory({ minVersion: "12.0.0", version: "15.2.1", ngImport: i0, type: XPortalProviderService, deps: [{ token: i1.Store }, { token: AccountService }, { token: AuthenticationService }, { token: DAPP_CONFIG }, { token: i4.Router }], target: i0.ɵɵFactoryTarget.Injectable });
+XPortalProviderService.ɵprov = i0.ɵɵngDeclareInjectable({ minVersion: "12.0.0", version: "15.2.1", ngImport: i0, type: XPortalProviderService, providedIn: 'root' });
+i0.ɵɵngDeclareClassMetadata({ minVersion: "12.0.0", version: "15.2.1", ngImport: i0, type: XPortalProviderService, decorators: [{
+            type: Injectable,
+            args: [{
+                    providedIn: 'root',
+                }]
+        }], ctorParameters: function () { return [{ type: i1.Store }, { type: AccountService }, { type: AuthenticationService }, { type: undefined, decorators: [{
+                    type: Inject,
+                    args: [DAPP_CONFIG]
+                }] }, { type: i4.Router }]; } });
+
 class PermissionsProviderService {
-    constructor(extensionProvider, webWalletProvider, accountService, authService) {
+    constructor(extensionProvider, webWalletProvider, xportalProvider, accountService, authService) {
         this.extensionProvider = extensionProvider;
         this.webWalletProvider = webWalletProvider;
+        this.xportalProvider = xportalProvider;
         this.accountSubscription = null;
         this._provider = null;
         this.localAccountService = accountService;
@@ -1077,6 +1205,9 @@ class PermissionsProviderService {
                 break;
             case ProvidersType.WebWallet:
                 this.provider = this.webWalletProvider;
+                break;
+            case ProvidersType.XPortal:
+                this.provider = this.xportalProvider;
                 break;
             default:
                 this.provider = null;
@@ -1108,14 +1239,14 @@ class PermissionsProviderService {
         throw new Error('Provider is not set');
     }
 }
-PermissionsProviderService.ɵfac = i0.ɵɵngDeclareFactory({ minVersion: "12.0.0", version: "15.2.1", ngImport: i0, type: PermissionsProviderService, deps: [{ token: ExtensionProviderService }, { token: WebWalletProviderService }, { token: AccountService }, { token: AuthenticationService }], target: i0.ɵɵFactoryTarget.Injectable });
+PermissionsProviderService.ɵfac = i0.ɵɵngDeclareFactory({ minVersion: "12.0.0", version: "15.2.1", ngImport: i0, type: PermissionsProviderService, deps: [{ token: ExtensionProviderService }, { token: WebWalletProviderService }, { token: XPortalProviderService }, { token: AccountService }, { token: AuthenticationService }], target: i0.ɵɵFactoryTarget.Injectable });
 PermissionsProviderService.ɵprov = i0.ɵɵngDeclareInjectable({ minVersion: "12.0.0", version: "15.2.1", ngImport: i0, type: PermissionsProviderService, providedIn: 'root' });
 i0.ɵɵngDeclareClassMetadata({ minVersion: "12.0.0", version: "15.2.1", ngImport: i0, type: PermissionsProviderService, decorators: [{
             type: Injectable,
             args: [{
                     providedIn: 'root',
                 }]
-        }], ctorParameters: function () { return [{ type: ExtensionProviderService }, { type: WebWalletProviderService }, { type: AccountService }, { type: AuthenticationService }]; } });
+        }], ctorParameters: function () { return [{ type: ExtensionProviderService }, { type: WebWalletProviderService }, { type: XPortalProviderService }, { type: AccountService }, { type: AuthenticationService }]; } });
 
 class TransactionsService {
     constructor(permissionsProvider, store, accountApi, accountService, parseAmount, config) {
@@ -1333,5 +1464,5 @@ i0.ɵɵngDeclareClassMetadata({ minVersion: "12.0.0", version: "15.2.1", ngImpor
  * Generated bundle index. Do not edit.
  */
 
-export { AccountApiService, AccountService, AuthenticationService, DAPP_CONFIG, DECIMALS, DIGITS, ESDTTransferTypes, FormatAmountPipe, GAS_LIMIT, GAS_PER_DATA_BYTE, GAS_PRICE, GAS_PRICE_MODIFIER, MyStorageEngine, NativeAuthTokenInterceptorService, NgxSdkDappModule, ParseAmountPipe, PermissionsProviderService, ProvidersType, TimeAgoPipe, TransactionsService, TrimStrPipe, TxStatusEnum, TypesOfSmartContractCallsEnum, ZERO, addressIsValid, canActivateRoute, decodeBase64, decodeLoginToken, decodeNativeAuthToken, encodeToBase64, getAddressFromDataField, isContract, isSelfESDTContract, isStringBase64, parseAmount, stringIsInteger };
+export { AccountApiService, AccountService, AuthenticationService, DAPP_CONFIG, DECIMALS, DIGITS, ESDTTransferTypes, FormatAmountPipe, GAS_LIMIT, GAS_PER_DATA_BYTE, GAS_PRICE, GAS_PRICE_MODIFIER, MyStorageEngine, NativeAuthTokenInterceptorService, NgxSdkDappModule, ParseAmountPipe, PermissionsProviderService, ProvidersType, TimeAgoPipe, TransactionsService, TrimStrPipe, TxStatusEnum, TypesOfSmartContractCallsEnum, XPortalProviderService, ZERO, addressIsValid, canActivateRoute, decodeBase64, decodeLoginToken, decodeNativeAuthToken, encodeToBase64, getAddressFromDataField, isContract, isSelfESDTContract, isStringBase64, parseAmount, stringIsInteger };
 //# sourceMappingURL=ngx-sdk-dapp.mjs.map
