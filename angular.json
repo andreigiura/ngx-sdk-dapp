@@ -25,7 +25,8 @@
             "inlineStyleLanguage": "sass",
             "assets": ["src/favicon.ico", "src/assets"],
             "styles": ["src/styles.sass"],
-            "scripts": []
+            "scripts": [],
+            "baseHref": "https://andreigiura.github.io/ngx-sdk-dapp/"
           },
           "configurations": {
             "production": {
