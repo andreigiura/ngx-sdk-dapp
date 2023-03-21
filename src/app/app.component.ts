@@ -25,7 +25,9 @@ import { dashboardModuleRoutes } from './modules/dashboard/dashboard-routing.mod
       </a>
 
       <div class="col-md-3 text-end">
-        <a [routerLink]="[dashBoardStatsRoute]"
+        <a
+          *ngIf="authService.isAuthenticated()"
+          [routerLink]="[dashBoardStatsRoute]"
           ><fa-icon [icon]="faChart"></fa-icon></a
         >&nbsp;
         <button
