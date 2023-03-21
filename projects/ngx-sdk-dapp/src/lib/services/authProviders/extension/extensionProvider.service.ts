@@ -29,11 +29,11 @@ export class ExtensionProviderService extends GenericProvider {
     this.localAccount = accountService;
   }
 
-  override async connect(navAfterConnectRoute?: string): Promise<{
+  override async connect(navAfterConnectRoute: string): Promise<{
     client: NativeAuthClient;
     init: string;
   }> {
-    const { client, init } = await super.connect();
+    const { client, init } = await super.connect(navAfterConnectRoute);
 
     const extensionInstance = ExtensionProvider.getInstance();
 

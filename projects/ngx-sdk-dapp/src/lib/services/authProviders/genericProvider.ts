@@ -18,6 +18,7 @@ import { TransactionsService } from '../transactions/transactions.service';
 export enum ProvidersType {
   Extension = 'Extension',
   WebWallet = 'WebWallet',
+  XPortal = 'XPortal',
   EMPTY = '',
 }
 /**
@@ -39,7 +40,7 @@ export class GenericProvider {
   }
 
   async connect(
-    navAfterConnectRoute?: string
+    navAfterConnectRoute: string
   ): Promise<{ client: NativeAuthClient; init: string }> {
     if (
       this.accountService.account.currentProvider !== ProvidersType.EMPTY &&

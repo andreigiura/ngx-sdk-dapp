@@ -22,6 +22,7 @@ import {
 import { AppToastsComponent } from './components/app-toasts/app-toasts.component';
 import { SDK_DAPP_CONFIG } from './config';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
+import { QRCodeModule } from 'angularx-qrcode';
 
 @NgModule({
   declarations: [
@@ -39,6 +40,7 @@ import { HTTP_INTERCEPTORS } from '@angular/common/http';
     NgbToast,
     NgbTooltip,
     NgbProgressbar,
+    QRCodeModule,
   ],
   providers: [
     ParseAmountPipe,

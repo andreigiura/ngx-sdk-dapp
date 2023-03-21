@@ -101,11 +101,11 @@ export class WebWalletProviderService extends GenericProvider {
     if (navAfterConnectRoute) this.router.navigate([navAfterConnectRoute]);
   };
 
-  override async connect(navAfterConnectRoute?: string): Promise<{
+  override async connect(navAfterConnectRoute: string): Promise<{
     client: NativeAuthClient;
     init: string;
   }> {
-    const { client, init } = await super.connect();
+    const { client, init } = await super.connect(navAfterConnectRoute);
     localStorage.setItem('initToken', init);
     localStorage.setItem('navAfterConnectRoute', navAfterConnectRoute || '');
 

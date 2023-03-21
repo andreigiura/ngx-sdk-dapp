@@ -7,6 +7,10 @@ export const SDK_DAPP_CONFIG: DappConfig = {
   explorerURL: 'https://devnet-explorer.elrond.com',
   chainID: 'D',
   nativeAuthAPIs: { toolsApi: 'https://tools.multiversx.com' },
+  walletConnectDeepLink:
+    'https://maiar.page.link/?apn=com.elrond.maiar.wallet&isi=1519405832&ibi=com.elrond.maiar.wallet&link=https://xportal.com/',
+  walletConnectV2ProjectId: '9b1a9564f91cb659ffe21b73d5c4e2d8',
+  walletConnectV2RelayAddresses: ['wss://relay.walletconnect.com'],
 };
 
 export const MY_APP_CONFIG = {
