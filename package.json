@@ -33,6 +33,7 @@
     "@ngxs/storage-plugin": "^3.7.6",
     "@ngxs/store": "^3.7.6",
     "@popperjs/core": "^2.11.6",
+    "angular-cli-ghpages": "^1.0.5",
     "bignumber.js": "^9.1.1",
     "buffer": "^6.0.3",
     "lodash": "^4.17.21",
