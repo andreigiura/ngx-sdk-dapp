@@ -21,6 +21,7 @@ import { Address as Address$1, TransactionPayload, Transaction } from '@multiver
 import { ExtensionProvider } from '@multiversx/sdk-extension-provider/out';
 import { WalletProvider } from '@multiversx/sdk-web-wallet-provider/out';
 import { WalletConnectV2Provider } from '@multiversx/sdk-wallet-connect-provider';
+import { HWProvider } from '@multiversx/sdk-hw-provider/out';
 
 const DAPP_CONFIG = new InjectionToken('config');
 
@@ -97,6 +98,7 @@ var ProvidersType;
     ProvidersType["Extension"] = "Extension";
     ProvidersType["WebWallet"] = "WebWallet";
     ProvidersType["XPortal"] = "XPortal";
+    ProvidersType["Ledger"] = "Ledger";
     ProvidersType["EMPTY"] = "";
 })(ProvidersType || (ProvidersType = {}));
 /**
@@ -190,7 +192,7 @@ class AccountApiService {
         this.config = config;
     }
     getAccount(address) {
-        return this.http.get(`${this.config.apiURL}/accounts/${this.accountService.account.address}`);
+        return this.http.get(`${this.config.apiURL}/accounts/${address}`);
     }
     sendTransactions(transactions) {
         return this.http.post(`${this.config.gatewayURL}/transaction/send-multiple`, transactions);
@@ -796,6 +798,33 @@ i0.ɵɵngDeclareClassMetadata({ minVersion: "12.0.0", version: "15.2.1", ngImpor
                 }]
         }] });
 
+class AddressToFormattedBalancePipe {
+    constructor(config, http, accountApi, formatPipe) {
+        this.config = config;
+        this.http = http;
+        this.accountApi = accountApi;
+        this.formatPipe = formatPipe;
+    }
+    async transform(value, ...args) {
+        const account = await lastValueFrom(this.accountApi.getAccount(value));
+        return this.formatPipe.transform(account.balance, {
+            digits: 2,
+            addCommas: true,
+        });
+    }
+}
+AddressToFormattedBalancePipe.ɵfac = i0.ɵɵngDeclareFactory({ minVersion: "12.0.0", version: "15.2.1", ngImport: i0, type: AddressToFormattedBalancePipe, deps: [{ token: DAPP_CONFIG }, { token: i1$1.HttpClient }, { token: AccountApiService }, { token: FormatAmountPipe }], target: i0.ɵɵFactoryTarget.Pipe });
+AddressToFormattedBalancePipe.ɵpipe = i0.ɵɵngDeclarePipe({ minVersion: "14.0.0", version: "15.2.1", ngImport: i0, type: AddressToFormattedBalancePipe, name: "addressToFormattedBalance" });
+i0.ɵɵngDeclareClassMetadata({ minVersion: "12.0.0", version: "15.2.1", ngImport: i0, type: AddressToFormattedBalancePipe, decorators: [{
+            type: Pipe,
+            args: [{
+                    name: 'addressToFormattedBalance',
+                }]
+        }], ctorParameters: function () { return [{ type: undefined, decorators: [{
+                    type: Inject,
+                    args: [DAPP_CONFIG]
+                }] }, { type: i1$1.HttpClient }, { type: AccountApiService }, { type: FormatAmountPipe }]; } });
+
 class MyStorageEngine {
     get length() {
         return Object.keys(localStorage).filter((x) => x.startsWith(MyStorageEngine.STORAGE_PREFIX)).length;
@@ -819,8 +848,16 @@ MyStorageEngine.STORAGE_PREFIX = 'ngx-sdk-dapp_';
 class NgxSdkDappModule {
 }
 NgxSdkDappModule.ɵfac = i0.ɵɵngDeclareFactory({ minVersion: "12.0.0", version: "15.2.1", ngImport: i0, type: NgxSdkDappModule, deps: [], target: i0.ɵɵFactoryTarget.NgModule });
-NgxSdkDappModule.ɵmod = i0.ɵɵngDeclareNgModule({ minVersion: "14.0.0", version: "15.2.1", ngImport: i0, type: NgxSdkDappModule, declarations: [FormatAmountPipe, ParseAmountPipe, TrimStrPipe, TimeAgoPipe], imports: [i1.ɵj, i2.NgxsStoragePluginModule, i3.NgxsActionsExecutingModule, HttpClientModule,
-        CommonModule], exports: [FormatAmountPipe, ParseAmountPipe, TrimStrPipe, TimeAgoPipe] });
+NgxSdkDappModule.ɵmod = i0.ɵɵngDeclareNgModule({ minVersion: "14.0.0", version: "15.2.1", ngImport: i0, type: NgxSdkDappModule, declarations: [FormatAmountPipe,
+        ParseAmountPipe,
+        TrimStrPipe,
+        TimeAgoPipe,
+        AddressToFormattedBalancePipe], imports: [i1.ɵj, i2.NgxsStoragePluginModule, i3.NgxsActionsExecutingModule, HttpClientModule,
+        CommonModule], exports: [FormatAmountPipe,
+        ParseAmountPipe,
+        TrimStrPipe,
+        TimeAgoPipe,
+        AddressToFormattedBalancePipe] });
 NgxSdkDappModule.ɵinj = i0.ɵɵngDeclareInjector({ minVersion: "12.0.0", version: "15.2.1", ngImport: i0, type: NgxSdkDappModule, providers: [
         {
             provide: STORAGE_ENGINE,
@@ -834,7 +871,13 @@ NgxSdkDappModule.ɵinj = i0.ɵɵngDeclareInjector({ minVersion: "12.0.0", versio
 i0.ɵɵngDeclareClassMetadata({ minVersion: "12.0.0", version: "15.2.1", ngImport: i0, type: NgxSdkDappModule, decorators: [{
             type: NgModule,
             args: [{
-                    declarations: [FormatAmountPipe, ParseAmountPipe, TrimStrPipe, TimeAgoPipe],
+                    declarations: [
+                        FormatAmountPipe,
+                        ParseAmountPipe,
+                        TrimStrPipe,
+                        TimeAgoPipe,
+                        AddressToFormattedBalancePipe,
+                    ],
                     imports: [
                         NgxsModule.forRoot([AccountState, TransactionsState]),
                         NgxsStoragePluginModule.forRoot(),
@@ -848,7 +891,13 @@ i0.ɵɵngDeclareClassMetadata({ minVersion: "12.0.0", version: "15.2.1", ngImpor
                             useClass: MyStorageEngine,
                         },
                     ],
-                    exports: [FormatAmountPipe, ParseAmountPipe, TrimStrPipe, TimeAgoPipe],
+                    exports: [
+                        FormatAmountPipe,
+                        ParseAmountPipe,
+                        TrimStrPipe,
+                        TimeAgoPipe,
+                        AddressToFormattedBalancePipe,
+                    ],
                 }]
         }] });
 
@@ -1233,11 +1282,126 @@ i0.ɵɵngDeclareClassMetadata({ minVersion: "12.0.0", version: "15.2.1", ngImpor
                     args: [DAPP_CONFIG]
                 }] }, { type: i4.Router }]; } });
 
+class LedgerProviderService extends GenericProvider {
+    constructor(store, accountService, authenticationService, config, router) {
+        super(store, accountService, authenticationService, config);
+        this.config = config;
+        this.router = router;
+        this.localStore = store;
+        this.localAccount = accountService;
+    }
+    async connect(navAfterConnectRoute) {
+        const { client, init } = await super.connect(navAfterConnectRoute);
+        this.navAfterConnectRoute = navAfterConnectRoute;
+        this.ledgerProvider = new HWProvider();
+        try {
+            await this.ledgerProvider.init();
+            if (await this.ledgerProvider.isInitialized()) {
+                try {
+                    const accounts = await this.ledgerProvider.getAccounts(0, 10);
+                    return { client, init, accounts };
+                }
+                catch (error) {
+                    return {
+                        client,
+                        init,
+                        error: 'Could not get accounts, open multiversx app on ledger',
+                    };
+                }
+            }
+            else {
+                return {
+                    client,
+                    init,
+                    error: 'Could not initialize ledger provider',
+                };
+            }
+        }
+        catch (error) {
+            return {
+                client,
+                init,
+                error: 'Could not initialize ledger provider',
+            };
+        }
+    }
+    async authenticateAccount(index) {
+        const { client, init } = await super.connect(this.navAfterConnectRoute || '/');
+        try {
+            const loginResult = await this.ledgerProvider?.tokenLogin({
+                addressIndex: index,
+                token: Buffer.from(init),
+            });
+            if (!loginResult?.signature || !loginResult?.address) {
+                throw new Error('Could not login with ledger');
+            }
+            const { signature, address } = loginResult;
+            const accessToken = client.getToken(address, init, signature.hex());
+            this.localStore.dispatch(new LoginAccount({
+                address,
+                accessToken,
+                currentProvider: ProvidersType.Ledger,
+                ledgerIndex: index,
+            }));
+            if (this.navAfterConnectRoute)
+                this.router.navigate([this.navAfterConnectRoute]);
+        }
+        catch (error) { }
+    }
+    async logout() {
+        await this.ledgerProvider?.logout();
+        this.router.navigate(['/']);
+        return super.logout();
+    }
+    async sendTransactions(transactions, txId) {
+        const txArray = transactions.map((tx) => {
+            const tx1 = Transaction.fromPlainObject(tx);
+            return tx1;
+        });
+        try {
+            const result = await this.ledgerProvider?.signTransactions(txArray);
+            this.addSignedTransactionsToState(result.map((tx) => tx.toPlainObject()), txId);
+        }
+        catch (error) {
+            this.addToCancelledTransaction(txId);
+        }
+    }
+    async loadAccounts(page, numAddresses) {
+        if (this.ledgerProvider) {
+            return this.ledgerProvider.getAccounts(page, numAddresses);
+        }
+        throw new Error('Ledger provider not initialized');
+    }
+    async reInitialize(account) {
+        if (account.currentProvider !== ProvidersType.Ledger)
+            return;
+        try {
+            this.ledgerProvider = new HWProvider();
+            await this.ledgerProvider.init();
+            await this.ledgerProvider.isInitialized();
+            this.ledgerProvider.setAddressIndex(account.ledgerIndex);
+        }
+        catch (error) { }
+    }
+}
+LedgerProviderService.ɵfac = i0.ɵɵngDeclareFactory({ minVersion: "12.0.0", version: "15.2.1", ngImport: i0, type: LedgerProviderService, deps: [{ token: i1.Store }, { token: AccountService }, { token: AuthenticationService }, { token: DAPP_CONFIG }, { token: i4.Router }], target: i0.ɵɵFactoryTarget.Injectable });
+LedgerProviderService.ɵprov = i0.ɵɵngDeclareInjectable({ minVersion: "12.0.0", version: "15.2.1", ngImport: i0, type: LedgerProviderService, providedIn: 'root' });
+i0.ɵɵngDeclareClassMetadata({ minVersion: "12.0.0", version: "15.2.1", ngImport: i0, type: LedgerProviderService, decorators: [{
+            type: Injectable,
+            args: [{
+                    providedIn: 'root',
+                }]
+        }], ctorParameters: function () { return [{ type: i1.Store }, { type: AccountService }, { type: AuthenticationService }, { type: undefined, decorators: [{
+                    type: Inject,
+                    args: [DAPP_CONFIG]
+                }] }, { type: i4.Router }]; } });
+
 class PermissionsProviderService {
-    constructor(extensionProvider, webWalletProvider, xportalProvider, accountService, authService) {
+    constructor(extensionProvider, webWalletProvider, xportalProvider, ledgerProvider, accountService, authService) {
         this.extensionProvider = extensionProvider;
         this.webWalletProvider = webWalletProvider;
         this.xportalProvider = xportalProvider;
+        this.ledgerProvider = ledgerProvider;
         this.accountSubscription = null;
         this._provider = null;
         this.localAccountService = accountService;
@@ -1268,6 +1432,9 @@ class PermissionsProviderService {
                 break;
             case ProvidersType.XPortal:
                 this.provider = this.xportalProvider;
+                break;
+            case ProvidersType.Ledger:
+                this.provider = this.ledgerProvider;
                 break;
             default:
                 this.provider = null;
@@ -1306,14 +1473,14 @@ class PermissionsProviderService {
         throw new Error('Provider is not set');
     }
 }
-PermissionsProviderService.ɵfac = i0.ɵɵngDeclareFactory({ minVersion: "12.0.0", version: "15.2.1", ngImport: i0, type: PermissionsProviderService, deps: [{ token: ExtensionProviderService }, { token: WebWalletProviderService }, { token: XPortalProviderService }, { token: AccountService }, { token: AuthenticationService }], target: i0.ɵɵFactoryTarget.Injectable });
+PermissionsProviderService.ɵfac = i0.ɵɵngDeclareFactory({ minVersion: "12.0.0", version: "15.2.1", ngImport: i0, type: PermissionsProviderService, deps: [{ token: ExtensionProviderService }, { token: WebWalletProviderService }, { token: XPortalProviderService }, { token: LedgerProviderService }, { token: AccountService }, { token: AuthenticationService }], target: i0.ɵɵFactoryTarget.Injectable });
 PermissionsProviderService.ɵprov = i0.ɵɵngDeclareInjectable({ minVersion: "12.0.0", version: "15.2.1", ngImport: i0, type: PermissionsProviderService, providedIn: 'root' });
 i0.ɵɵngDeclareClassMetadata({ minVersion: "12.0.0", version: "15.2.1", ngImport: i0, type: PermissionsProviderService, decorators: [{
             type: Injectable,
             args: [{
                     providedIn: 'root',
                 }]
-        }], ctorParameters: function () { return [{ type: ExtensionProviderService }, { type: WebWalletProviderService }, { type: XPortalProviderService }, { type: AccountService }, { type: AuthenticationService }]; } });
+        }], ctorParameters: function () { return [{ type: ExtensionProviderService }, { type: WebWalletProviderService }, { type: XPortalProviderService }, { type: LedgerProviderService }, { type: AccountService }, { type: AuthenticationService }]; } });
 
 class TransactionsService {
     constructor(permissionsProvider, store, accountApi, accountService, parseAmount, config) {
@@ -1540,5 +1707,5 @@ i0.ɵɵngDeclareClassMetadata({ minVersion: "12.0.0", version: "15.2.1", ngImpor
  * Generated bundle index. Do not edit.
  */
 
-export { AccountApiService, AccountService, AuthenticationService, DAPP_CONFIG, DECIMALS, DIGITS, ERD_CANCEL_ACTION, ESDTTransferTypes, FormatAmountPipe, GAS_LIMIT, GAS_PER_DATA_BYTE, GAS_PRICE, GAS_PRICE_MODIFIER, MULTIVERSX_CANCEL_ACTION, MyStorageEngine, NativeAuthTokenInterceptorService, NgxSdkDappModule, ParseAmountPipe, PermissionsProviderService, ProvidersType, TimeAgoPipe, TransactionsService, TrimStrPipe, TxStatusEnum, TypesOfSmartContractCallsEnum, XPortalProviderService, ZERO, addressIsValid, canActivateRoute, decodeBase64, decodeLoginToken, decodeNativeAuthToken, encodeToBase64, getAddressFromDataField, isContract, isSelfESDTContract, isStringBase64, parseAmount, stringIsInteger };
+export { AccountApiService, AccountService, AddressToFormattedBalancePipe, AuthenticationService, DAPP_CONFIG, DECIMALS, DIGITS, ERD_CANCEL_ACTION, ESDTTransferTypes, FormatAmountPipe, GAS_LIMIT, GAS_PER_DATA_BYTE, GAS_PRICE, GAS_PRICE_MODIFIER, LedgerProviderService, MULTIVERSX_CANCEL_ACTION, MyStorageEngine, NativeAuthTokenInterceptorService, NgxSdkDappModule, ParseAmountPipe, PermissionsProviderService, ProvidersType, TimeAgoPipe, TransactionsService, TrimStrPipe, TxStatusEnum, TypesOfSmartContractCallsEnum, XPortalProviderService, ZERO, addressIsValid, canActivateRoute, decodeBase64, decodeLoginToken, decodeNativeAuthToken, encodeToBase64, getAddressFromDataField, isContract, isSelfESDTContract, isStringBase64, parseAmount, stringIsInteger };
 //# sourceMappingURL=ngx-sdk-dapp.mjs.map

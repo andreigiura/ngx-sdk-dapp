@@ -3,18 +3,20 @@ import { AccountService } from '../account/account.service';
 import { AuthenticationService } from '../authentication/authentication.service';
 import { ExtensionProviderService } from './extension/extensionProvider.service';
 import { ProvidersType } from './genericProvider';
+import { LedgerProviderService } from './ledger/ledger-provider.service';
 import { WebWalletProviderService } from './webWallet/web-walletProvider.service';
 import { XPortalProviderService } from './xPortal/x-portal.service';
 import * as i0 from "@angular/core";
-type AllProvidersType = ExtensionProviderService | XPortalProviderService | WebWalletProviderService | null;
+type AllProvidersType = ExtensionProviderService | XPortalProviderService | WebWalletProviderService | LedgerProviderService | null;
 export declare class PermissionsProviderService {
     private extensionProvider;
     private webWalletProvider;
     private xportalProvider;
+    private ledgerProvider;
     private _provider;
     private localAccountService;
     private accountSubscription;
-    constructor(extensionProvider: ExtensionProviderService, webWalletProvider: WebWalletProviderService, xportalProvider: XPortalProviderService, accountService: AccountService, authService: AuthenticationService);
+    constructor(extensionProvider: ExtensionProviderService, webWalletProvider: WebWalletProviderService, xportalProvider: XPortalProviderService, ledgerProvider: LedgerProviderService, accountService: AccountService, authService: AuthenticationService);
     private refreshRemoteData;
     setProvider(providerType: ProvidersType): void;
     get provider(): AllProvidersType;
@@ -22,7 +24,7 @@ export declare class PermissionsProviderService {
     connect(navAfterConnectRoute: string): Promise<any>;
     logout(navAfterConnectRoute?: string): Promise<boolean>;
     cancelAction(): Promise<void>;
-    sendTransactions(transactions: IPlainTransactionObject[], txId: number): Promise<void>;
+    sendTransactions(transactions: IPlainTransactionObject[], txId: number): Promise<any>;
     static ɵfac: i0.ɵɵFactoryDeclaration<PermissionsProviderService, never>;
     static ɵprov: i0.ɵɵInjectableDeclaration<PermissionsProviderService>;
 }

@@ -9,6 +9,7 @@ export declare enum ProvidersType {
     Extension = "Extension",
     WebWallet = "WebWallet",
     XPortal = "XPortal",
+    Ledger = "Ledger",
     EMPTY = ""
 }
 /**
