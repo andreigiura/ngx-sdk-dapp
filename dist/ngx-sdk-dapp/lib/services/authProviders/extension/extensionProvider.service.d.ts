@@ -21,6 +21,7 @@ export declare class ExtensionProviderService extends GenericProvider {
     logout(): Promise<boolean>;
     reInitialize(account: AccountStateModel): void;
     sendTransactions(transactions: IPlainTransactionObject[], txId: number): Promise<void>;
+    cancelAction(): void;
     static ɵfac: i0.ɵɵFactoryDeclaration<ExtensionProviderService, never>;
     static ɵprov: i0.ɵɵInjectableDeclaration<ExtensionProviderService>;
 }

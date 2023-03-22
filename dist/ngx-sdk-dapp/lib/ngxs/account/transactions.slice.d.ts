@@ -25,6 +25,7 @@ export declare class TransactionsState {
     moveToFailed({ setState, getState }: StateContext<TransactionsStateModel>, { payload }: ChangeTxStatus): Promise<void>;
     removeTransaction({ setState, getState }: StateContext<TransactionsStateModel>, { payload }: RemoveTransaction): Promise<void>;
     setTxHashes({ setState, getState }: StateContext<TransactionsStateModel>, { payload }: SetTransactionHashes): Promise<void>;
+    cancelPendingSignature({ setState, getState, }: StateContext<TransactionsStateModel>): Promise<void>;
     static ɵfac: i0.ɵɵFactoryDeclaration<TransactionsState, never>;
     static ɵprov: i0.ɵɵInjectableDeclaration<TransactionsState>;
 }

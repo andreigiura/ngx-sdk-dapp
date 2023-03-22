@@ -29,5 +29,6 @@ export declare class GenericProvider {
     addSignedTransactionsToState(transactions: IPlainTransactionObject[], txId: number): void;
     addFailedTransactionsToState(txId: number): void;
     addToCancelledTransaction(txId: number): void;
+    cancelAction(): void;
     reInitialize(account: AccountStateModel): void;
 }

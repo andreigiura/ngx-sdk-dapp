@@ -76,6 +76,9 @@ class SetTransactionHashes {
     }
 }
 SetTransactionHashes.type = '[Transactions] Set Transaction Hashes';
+class CancelPendingSignature {
+}
+CancelPendingSignature.type = '[Transactions] Cancel Pending Signature';
 
 var TxStatusEnum;
 (function (TxStatusEnum) {
@@ -147,6 +150,7 @@ let GenericProvider = class GenericProvider {
             newStatus: TxStatusEnum.CANCELLED,
         }));
     }
+    cancelAction() { }
     reInitialize(account) { }
 };
 GenericProvider = __decorate([
@@ -290,6 +294,8 @@ const GAS_PRICE = 1000000000;
 const DECIMALS = 18;
 const DIGITS = 4;
 const ZERO = '0';
+const MULTIVERSX_CANCEL_ACTION = 'multiversx_cancelAction';
+const ERD_CANCEL_ACTION = 'erd_cancelAction';
 
 function pipe(previous) {
     return {
@@ -716,6 +722,17 @@ let TransactionsState = class TransactionsState {
             setState({ transactions });
         });
     }
+    cancelPendingSignature({ setState, getState, }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const transactions = getState().transactions;
+            transactions.map((tx) => {
+                if (tx.status === TxStatusEnum.PENDING_SIGNATURE) {
+                    tx.status = TxStatusEnum.CANCELLED;
+                }
+            });
+            setState({ transactions });
+        });
+    }
 };
 TransactionsState.ɵfac = i0.ɵɵngDeclareFactory({ minVersion: "12.0.0", version: "15.2.1", ngImport: i0, type: TransactionsState, deps: [], target: i0.ɵɵFactoryTarget.Injectable });
 TransactionsState.ɵprov = i0.ɵɵngDeclareInjectable({ minVersion: "12.0.0", version: "15.2.1", ngImport: i0, type: TransactionsState });
@@ -737,6 +754,9 @@ __decorate([
 __decorate([
     Action(SetTransactionHashes)
 ], TransactionsState.prototype, "setTxHashes", null);
+__decorate([
+    Action(CancelPendingSignature)
+], TransactionsState.prototype, "cancelPendingSignature", null);
 TransactionsState = __decorate([
     State({
         name: 'transactions',
@@ -745,7 +765,7 @@ TransactionsState = __decorate([
 ], TransactionsState);
 i0.ɵɵngDeclareClassMetadata({ minVersion: "12.0.0", version: "15.2.1", ngImport: i0, type: TransactionsState, decorators: [{
             type: Injectable
-        }], ctorParameters: function () { return []; }, propDecorators: { addTransactionBatch: [], moveToSigned: [], resetTransactions: [], moveToFailed: [], removeTransaction: [], setTxHashes: [] } });
+        }], ctorParameters: function () { return []; }, propDecorators: { addTransactionBatch: [], moveToSigned: [], resetTransactions: [], moveToFailed: [], removeTransaction: [], setTxHashes: [], cancelPendingSignature: [] } });
 
 class TrimStrPipe {
     transform(value, ...args) {
@@ -959,6 +979,9 @@ class ExtensionProviderService extends GenericProvider {
             }
         });
     }
+    cancelAction() {
+        ExtensionProvider.getInstance().cancelAction();
+    }
 }
 ExtensionProviderService.ɵfac = i0.ɵɵngDeclareFactory({ minVersion: "12.0.0", version: "15.2.1", ngImport: i0, type: ExtensionProviderService, deps: [{ token: i1.Store }, { token: AccountService }, { token: AuthenticationService }, { token: DAPP_CONFIG }, { token: i4.Router }], target: i0.ɵɵFactoryTarget.Injectable });
 ExtensionProviderService.ɵprov = i0.ɵɵngDeclareInjectable({ minVersion: "12.0.0", version: "15.2.1", ngImport: i0, type: ExtensionProviderService, providedIn: 'root' });
@@ -1133,6 +1156,7 @@ class XPortalProviderService extends GenericProvider {
         };
         this.onClientEvent = (event) => { };
         this.localStore = store;
+        this.localAccountService = accountService;
     }
     connect(navAfterConnectRoute) {
         const _super = Object.create(null, {
@@ -1147,24 +1171,31 @@ class XPortalProviderService extends GenericProvider {
                 onClientLogout: this.onClientLogout,
                 onClientEvent: this.onClientEvent,
             }, this.config.chainID, this.config.walletConnectV2RelayAddresses[0], this.config.walletConnectV2ProjectId);
-            yield this.walletConnect.init();
-            const { uri, approval } = yield this.walletConnect.connect();
-            if (!uri) {
-                throw new Error('WalletConnect could not be initialized');
+            try {
+                yield this.walletConnect.init();
+                const { uri, approval } = yield this.walletConnect.connect({
+                    methods: [MULTIVERSX_CANCEL_ACTION, ERD_CANCEL_ACTION],
+                });
+                if (!uri) {
+                    throw new Error('WalletConnect could not be initialized');
+                }
+                let walletConectUriWithToken = uri;
+                walletConectUriWithToken = `${walletConectUriWithToken}&token=${init}`;
+                this.awaitUserConnectionResponse({
+                    approval,
+                    token: init,
+                });
+                return {
+                    client,
+                    init,
+                    qrCodeStr: walletConectUriWithToken,
+                    approval,
+                    token: init,
+                };
             }
-            let walletConectUriWithToken = uri;
-            walletConectUriWithToken = `${walletConectUriWithToken}&token=${init}`;
-            this.awaitUserConnectionResponse({
-                approval,
-                token: init,
-            });
-            return {
-                client,
-                init,
-                qrCodeStr: walletConectUriWithToken,
-                approval,
-                token: init,
-            };
+            catch (error) {
+                throw error;
+            }
         });
     }
     awaitUserConnectionResponse({ approval, token, }) {
@@ -1214,27 +1245,61 @@ class XPortalProviderService extends GenericProvider {
                     return this.addToCancelledTransaction(txId);
                 this.addSignedTransactionsToState(result.map((tx) => tx.toPlainObject()), txId);
             }
-            catch (error) { }
+            catch (error) {
+                this.addToCancelledTransaction(txId);
+            }
         });
     }
     reInitialize() {
         return __awaiter(this, void 0, void 0, function* () {
-            this.walletConnect = new WalletConnectV2Provider({
-                onClientLogin: this.onClientLogin,
-                onClientLogout: this.onClientLogout,
-                onClientEvent: this.onClientEvent,
-            }, this.config.chainID, this.config.walletConnectV2RelayAddresses[0], this.config.walletConnectV2ProjectId);
             try {
+                this.walletConnect = new WalletConnectV2Provider({
+                    onClientLogin: () => {
+                        this.onClientLogin();
+                    },
+                    onClientLogout: () => {
+                        this.onClientLogout();
+                    },
+                    onClientEvent: (e) => {
+                        this.onClientEvent(e);
+                    },
+                }, this.config.chainID, this.config.walletConnectV2RelayAddresses[0], this.config.walletConnectV2ProjectId);
                 yield this.walletConnect.init();
                 const connected = yield this.walletConnect.isConnected();
-                if (!connected)
+                if (!connected &&
+                    this.localAccountService.account.currentProvider ===
+                        ProvidersType.XPortal)
                     this.logout();
+                else
+                    this.walletConnect.methods = [
+                        MULTIVERSX_CANCEL_ACTION,
+                        ERD_CANCEL_ACTION,
+                    ];
             }
             catch (error) {
                 this.logout();
             }
             return '';
-            // throw new Error('Method not implemented.');
+        });
+    }
+    cancelAction() {
+        var _a, _b;
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                if (!this.walletConnect) {
+                    return;
+                }
+                this.localStore.dispatch(new CancelPendingSignature());
+                yield ((_b = (_a = this.walletConnect) === null || _a === void 0 ? void 0 : _a.sendCustomRequest) === null || _b === void 0 ? void 0 : _b.call(_a, {
+                    request: {
+                        method: MULTIVERSX_CANCEL_ACTION,
+                        params: { action: 'cancelSignTx' },
+                    },
+                }));
+            }
+            catch (error) {
+                console.warn('WalletConnectV2: Unable to send cancelAction event', error);
+            }
         });
     }
 }
@@ -1311,6 +1376,15 @@ class PermissionsProviderService {
         }
         throw new Error('Provider is not set');
     }
+    cancelAction() {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (this._provider && this._provider.cancelAction) {
+                this._provider.cancelAction();
+                return;
+            }
+            throw new Error('Provider is not set123');
+        });
+    }
     sendTransactions(transactions, txId) {
         if (this._provider) {
             return this._provider.sendTransactions(transactions, txId);
@@ -1366,6 +1440,18 @@ class TransactionsService {
                 }
             });
         }, 1000);
+        this.watchUnload();
+    }
+    watchUnload() {
+        return __awaiter(this, void 0, void 0, function* () {
+            window.onbeforeunload = (e) => {
+                var _a;
+                if ((_a = this.permissionsProvider.provider) === null || _a === void 0 ? void 0 : _a.cancelAction) {
+                    this.permissionsProvider.provider.cancelAction();
+                    this.store.dispatch(new CancelPendingSignature());
+                }
+            };
+        });
     }
     trackTransactionStatus(transaction) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -1396,11 +1482,11 @@ class TransactionsService {
             .pipe(skipWhile((tx) => !tx || tx.status !== watchForStatus))
             .pipe(take(1));
     }
-    hasTransactionsInProgress() {
+    hasTransactionsInStatus(status) {
         if (this.transactions$ === undefined)
             throw new Error('transactions$ is undefined');
         return this.transactions$.pipe(map((transaction) => transaction.transactions.some((tx) => {
-            return tx.status === TxStatusEnum.SEND_IN_PROGRESS;
+            return tx.status === status;
         })));
     }
     updateToastStatus(txHashesStatus, transactionId) {
@@ -1547,5 +1633,5 @@ i0.ɵɵngDeclareClassMetadata({ minVersion: "12.0.0", version: "15.2.1", ngImpor
  * Generated bundle index. Do not edit.
  */
 
-export { AccountApiService, AccountService, AuthenticationService, DAPP_CONFIG, DECIMALS, DIGITS, ESDTTransferTypes, FormatAmountPipe, GAS_LIMIT, GAS_PER_DATA_BYTE, GAS_PRICE, GAS_PRICE_MODIFIER, MyStorageEngine, NativeAuthTokenInterceptorService, NgxSdkDappModule, ParseAmountPipe, PermissionsProviderService, ProvidersType, TimeAgoPipe, TransactionsService, TrimStrPipe, TxStatusEnum, TypesOfSmartContractCallsEnum, XPortalProviderService, ZERO, addressIsValid, canActivateRoute, decodeBase64, decodeLoginToken, decodeNativeAuthToken, encodeToBase64, getAddressFromDataField, isContract, isSelfESDTContract, isStringBase64, parseAmount, stringIsInteger };
+export { AccountApiService, AccountService, AuthenticationService, DAPP_CONFIG, DECIMALS, DIGITS, ERD_CANCEL_ACTION, ESDTTransferTypes, FormatAmountPipe, GAS_LIMIT, GAS_PER_DATA_BYTE, GAS_PRICE, GAS_PRICE_MODIFIER, MULTIVERSX_CANCEL_ACTION, MyStorageEngine, NativeAuthTokenInterceptorService, NgxSdkDappModule, ParseAmountPipe, PermissionsProviderService, ProvidersType, TimeAgoPipe, TransactionsService, TrimStrPipe, TxStatusEnum, TypesOfSmartContractCallsEnum, XPortalProviderService, ZERO, addressIsValid, canActivateRoute, decodeBase64, decodeLoginToken, decodeNativeAuthToken, encodeToBase64, getAddressFromDataField, isContract, isSelfESDTContract, isStringBase64, parseAmount, stringIsInteger };
 //# sourceMappingURL=ngx-sdk-dapp.mjs.map

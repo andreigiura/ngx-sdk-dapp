@@ -42,9 +42,10 @@ export declare class TransactionsService {
     toastTemplate: TemplateRef<any> | null;
     private trackedTransactions;
     constructor(permissionsProvider: PermissionsProviderService, store: Store, accountApi: AccountApiService, accountService: AccountService, parseAmount: ParseAmountPipe, config: DappConfig);
+    private watchUnload;
     private trackTransactionStatus;
     watchTransactionByTitle(txTitle: string, watchForStatus: TxStatusEnum): Observable<SingleTransactionModel | undefined>;
-    hasTransactionsInProgress(): Observable<boolean>;
+    hasTransactionsInStatus(status: TxStatusEnum): Observable<boolean>;
     private updateToastStatus;
     private sendTxToAPI;
     sendTransactions(transactions: Omit<IPlainTransactionObject, 'nonce' | 'sender' | 'chainID' | 'version'>[], txOptions: TransactionsOptions): number;

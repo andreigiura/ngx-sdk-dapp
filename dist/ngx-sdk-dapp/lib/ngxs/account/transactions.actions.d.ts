@@ -50,3 +50,6 @@ export declare class SetTransactionHashes {
         hashes: string[];
     });
 }
+export declare class CancelPendingSignature {
+    static readonly type = "[Transactions] Cancel Pending Signature";
+}

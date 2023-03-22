@@ -16,6 +16,7 @@ export declare class XPortalProviderService extends GenericProvider {
     private navAfterConnectRoute;
     private initToken;
     private localStore;
+    private localAccountService;
     constructor(store: Store, accountService: AccountService, authenticationService: AuthenticationService, config: DappConfig, router: Router);
     connect(navAfterConnectRoute: string): Promise<{
         client: NativeAuthClient;
@@ -34,6 +35,7 @@ export declare class XPortalProviderService extends GenericProvider {
     logout(): Promise<boolean>;
     sendTransactions(transactions: IPlainTransactionObject[], txId: number): Promise<void>;
     reInitialize(): Promise<string>;
+    cancelAction(): Promise<any>;
     static ɵfac: i0.ɵɵFactoryDeclaration<XPortalProviderService, never>;
     static ɵprov: i0.ɵɵInjectableDeclaration<XPortalProviderService>;
 }

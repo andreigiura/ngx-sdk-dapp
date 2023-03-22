@@ -21,6 +21,7 @@ export declare class PermissionsProviderService {
     private set provider(value);
     connect(navAfterConnectRoute: string): Promise<any>;
     logout(navAfterConnectRoute?: string): Promise<boolean>;
+    cancelAction(): Promise<void>;
     sendTransactions(transactions: IPlainTransactionObject[], txId: number): Promise<void>;
     static ɵfac: i0.ɵɵFactoryDeclaration<PermissionsProviderService, never>;
     static ɵprov: i0.ɵɵInjectableDeclaration<PermissionsProviderService>;
