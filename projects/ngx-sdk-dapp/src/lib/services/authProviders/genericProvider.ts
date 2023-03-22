@@ -13,12 +13,12 @@ import {
 import { TxStatusEnum } from '../../types';
 import { AccountService } from '../account/account.service';
 import { AuthenticationService } from '../authentication/authentication.service';
-import { TransactionsService } from '../transactions/transactions.service';
 
 export enum ProvidersType {
   Extension = 'Extension',
   WebWallet = 'WebWallet',
   XPortal = 'XPortal',
+  Ledger = 'Ledger',
   EMPTY = '',
 }
 /**

@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { IPlainTransactionObject } from '@multiversx/sdk-core/out';
+import { Observable } from 'rxjs';
 import { DappConfig, DAPP_CONFIG } from '../../config';
 import { AccountService } from '../../services/account/account.service';
 
@@ -14,10 +15,8 @@ export class AccountApiService {
     @Inject(DAPP_CONFIG) public config: DappConfig
   ) {}
 
-  getAccount(address: string) {
-    return this.http.get(
-      `${this.config.apiURL}/accounts/${this.accountService.account.address}`
-    );
+  getAccount(address: string): Observable<any> {
+    return this.http.get(`${this.config.apiURL}/accounts/${address}`);
   }
 
   sendTransactions(transactions: IPlainTransactionObject[]) {

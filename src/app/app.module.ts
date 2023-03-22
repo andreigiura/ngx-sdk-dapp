@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import {
+  AddressToFormattedBalancePipe,
   DAPP_CONFIG,
   FormatAmountPipe,
   NativeAuthTokenInterceptorService,
@@ -24,6 +25,7 @@ import { SDK_DAPP_CONFIG } from './config';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { QRCodeModule } from 'angularx-qrcode';
 import { AwaitingSignatureComponent } from './components/awaiting-signature/awaiting-signature.component';
+import { LedgerScreenComponent } from './components/login/ledger-screen/ledger-screen.component';
 
 @NgModule({
   declarations: [
@@ -32,6 +34,7 @@ import { AwaitingSignatureComponent } from './components/awaiting-signature/awai
     LoginComponent,
     AppToastsComponent,
     AwaitingSignatureComponent,
+    LedgerScreenComponent,
   ],
   imports: [
     BrowserModule,
@@ -47,6 +50,7 @@ import { AwaitingSignatureComponent } from './components/awaiting-signature/awai
   providers: [
     ParseAmountPipe,
     FormatAmountPipe,
+    AddressToFormattedBalancePipe,
     {
       provide: DAPP_CONFIG,
       useValue: SDK_DAPP_CONFIG,

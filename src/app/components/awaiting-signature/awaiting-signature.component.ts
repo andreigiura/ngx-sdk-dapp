@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import {
   AccountService,
   PermissionsProviderService,
+  ProvidersType,
   TransactionsService,
   TxStatusEnum,
 } from 'ngx-sdk-dapp';
@@ -13,6 +14,7 @@ import {
 })
 export class AwaitingSignatureComponent {
   TxStatusEnum = TxStatusEnum;
+  providerTypes = ProvidersType;
 
   constructor(
     public transactionsService: TransactionsService,
