@@ -23,6 +23,7 @@ import { AppToastsComponent } from './components/app-toasts/app-toasts.component
 import { SDK_DAPP_CONFIG } from './config';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { QRCodeModule } from 'angularx-qrcode';
+import { AwaitingSignatureComponent } from './components/awaiting-signature/awaiting-signature.component';
 
 @NgModule({
   declarations: [
@@ -30,6 +31,7 @@ import { QRCodeModule } from 'angularx-qrcode';
     HomeComponent,
     LoginComponent,
     AppToastsComponent,
+    AwaitingSignatureComponent,
   ],
   imports: [
     BrowserModule,

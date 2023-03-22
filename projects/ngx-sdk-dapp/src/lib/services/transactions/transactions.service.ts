@@ -14,6 +14,7 @@ import { DappConfig, DAPP_CONFIG } from '../../config';
 import { AccountApiService } from '../../ngxs/account/account-api.service';
 import {
   AddTransactionsBatch,
+  CancelPendingSignature,
   ChangeTxStatus,
   RemoveTransaction,
   ResetTransactions,
@@ -113,6 +114,17 @@ export class TransactionsService {
         }
       });
     }, 1000);
+
+    this.watchUnload();
+  }
+
+  private async watchUnload() {
+    window.onbeforeunload = (e) => {
+      if (this.permissionsProvider.provider?.cancelAction) {
+        this.permissionsProvider.provider.cancelAction();
+        this.store.dispatch(new CancelPendingSignature());
+      }
+    };
   }
 
   private async trackTransactionStatus(transaction: SingleTransactionModel) {
@@ -153,14 +165,14 @@ export class TransactionsService {
       .pipe(take(1));
   }
 
-  public hasTransactionsInProgress(): Observable<boolean> {
+  public hasTransactionsInStatus(status: TxStatusEnum): Observable<boolean> {
     if (this.transactions$ === undefined)
       throw new Error('transactions$ is undefined');
 
     return this.transactions$.pipe(
       map((transaction) =>
         transaction.transactions.some((tx) => {
-          return tx.status === TxStatusEnum.SEND_IN_PROGRESS;
+          return tx.status === status;
         })
       )
     );

@@ -14,6 +14,11 @@ import type {
 import { Observable } from 'rxjs';
 import { LoginAccount } from '../../../ngxs/account/account.actions';
 import { IPlainTransactionObject, Transaction } from '@multiversx/sdk-core/out';
+import {
+  ERD_CANCEL_ACTION,
+  MULTIVERSX_CANCEL_ACTION,
+} from '../../../constants';
+import { CancelPendingSignature } from '../../../ngxs/account/transactions.actions';
 
 @Injectable({
   providedIn: 'root',
@@ -24,7 +29,7 @@ export class XPortalProviderService extends GenericProvider {
   private navAfterConnectRoute: string | undefined;
   private initToken: string | undefined;
   private localStore: Store;
-
+  private localAccountService: AccountService;
   constructor(
     store: Store,
     accountService: AccountService,
@@ -34,6 +39,7 @@ export class XPortalProviderService extends GenericProvider {
   ) {
     super(store, accountService, authenticationService, config);
     this.localStore = store;
+    this.localAccountService = accountService;
   }
 
   override async connect(navAfterConnectRoute: string): Promise<{
@@ -58,26 +64,32 @@ export class XPortalProviderService extends GenericProvider {
       this.config.walletConnectV2ProjectId
     );
 
-    await this.walletConnect.init();
-    const { uri, approval } = await this.walletConnect.connect();
-    if (!uri) {
-      throw new Error('WalletConnect could not be initialized');
+    try {
+      await this.walletConnect.init();
+      const { uri, approval } = await this.walletConnect.connect({
+        methods: [MULTIVERSX_CANCEL_ACTION, ERD_CANCEL_ACTION],
+      });
+      if (!uri) {
+        throw new Error('WalletConnect could not be initialized');
+      }
+      let walletConectUriWithToken = uri;
+      walletConectUriWithToken = `${walletConectUriWithToken}&token=${init}`;
+
+      this.awaitUserConnectionResponse({
+        approval,
+        token: init,
+      });
+
+      return {
+        client,
+        init,
+        qrCodeStr: walletConectUriWithToken,
+        approval,
+        token: init,
+      };
+    } catch (error) {
+      throw error;
     }
-    let walletConectUriWithToken = uri;
-    walletConectUriWithToken = `${walletConectUriWithToken}&token=${init}`;
-
-    this.awaitUserConnectionResponse({
-      approval,
-      token: init,
-    });
-
-    return {
-      client,
-      init,
-      qrCodeStr: walletConectUriWithToken,
-      approval,
-      token: init,
-    };
   }
 
   public async awaitUserConnectionResponse({
@@ -161,31 +173,67 @@ export class XPortalProviderService extends GenericProvider {
         result.map((tx) => tx.toPlainObject()),
         txId
       );
-    } catch (error) {}
+    } catch (error) {
+      this.addToCancelledTransaction(txId);
+    }
   }
 
   override async reInitialize(): Promise<string> {
-    this.walletConnect = new WalletConnectV2Provider(
-      {
-        onClientLogin: this.onClientLogin,
-        onClientLogout: this.onClientLogout,
-        onClientEvent: this.onClientEvent,
-      },
-      this.config.chainID,
-      this.config.walletConnectV2RelayAddresses[0],
-      this.config.walletConnectV2ProjectId
-    );
-
     try {
+      this.walletConnect = new WalletConnectV2Provider(
+        {
+          onClientLogin: () => {
+            this.onClientLogin();
+          },
+          onClientLogout: () => {
+            this.onClientLogout();
+          },
+          onClientEvent: (e) => {
+            this.onClientEvent(e);
+          },
+        },
+        this.config.chainID,
+        this.config.walletConnectV2RelayAddresses[0],
+        this.config.walletConnectV2ProjectId
+      );
+
       await this.walletConnect.init();
       const connected = await this.walletConnect.isConnected();
 
-      if (!connected) this.logout();
+      if (
+        !connected &&
+        this.localAccountService.account.currentProvider ===
+          ProvidersType.XPortal
+      )
+        this.logout();
+      else
+        this.walletConnect.methods = [
+          MULTIVERSX_CANCEL_ACTION,
+          ERD_CANCEL_ACTION,
+        ];
     } catch (error) {
       this.logout();
     }
 
     return '';
-    // throw new Error('Method not implemented.');
+  }
+
+  override async cancelAction(): Promise<any> {
+    try {
+      if (!this.walletConnect) {
+        return;
+      }
+
+      this.localStore.dispatch(new CancelPendingSignature());
+
+      await this.walletConnect?.sendCustomRequest?.({
+        request: {
+          method: MULTIVERSX_CANCEL_ACTION,
+          params: { action: 'cancelSignTx' },
+        },
+      });
+    } catch (error) {
+      console.warn('WalletConnectV2: Unable to send cancelAction event', error);
+    }
   }
 }

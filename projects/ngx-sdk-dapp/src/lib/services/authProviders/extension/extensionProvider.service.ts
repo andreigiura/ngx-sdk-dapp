@@ -96,4 +96,8 @@ export class ExtensionProviderService extends GenericProvider {
       this.addToCancelledTransaction(txId);
     }
   }
+
+  override cancelAction(): void {
+    ExtensionProvider.getInstance().cancelAction();
+  }
 }

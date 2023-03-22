@@ -6,6 +6,7 @@ import { TxStatusEnum } from '../../types';
 
 import {
   AddTransactionsBatch,
+  CancelPendingSignature,
   ChangeTxStatus,
   MoveToSignedTransactions,
   RemoveTransaction,
@@ -101,6 +102,20 @@ export class TransactionsState {
     transactions.map((tx) => {
       if (tx.id === payload.id) {
         tx.transactionsHashes = payload.hashes;
+      }
+    });
+    setState({ transactions });
+  }
+
+  @Action(CancelPendingSignature)
+  async cancelPendingSignature({
+    setState,
+    getState,
+  }: StateContext<TransactionsStateModel>) {
+    const transactions = getState().transactions;
+    transactions.map((tx) => {
+      if (tx.status === TxStatusEnum.PENDING_SIGNATURE) {
+        tx.status = TxStatusEnum.CANCELLED;
       }
     });
     setState({ transactions });

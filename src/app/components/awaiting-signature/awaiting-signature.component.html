@@ -1,0 +1,32 @@
+<div
+  *ngIf="
+    transactionsService.hasTransactionsInStatus(TxStatusEnum.PENDING_SIGNATURE)
+      | async
+  "
+  class="modal fade show d-block"
+  id="exampleModalCenter"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="exampleModalCenterTitle"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-body text-center mt-5 mb-5">
+        <h3>
+          Sign Transactions on {{ accountService.account.currentProvider }}
+        </h3>
+      </div>
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          data-dismiss="modal"
+          (click)="permissionsProvider.cancelAction()"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

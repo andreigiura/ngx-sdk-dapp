@@ -92,5 +92,7 @@ export class GenericProvider {
     );
   }
 
+  cancelAction() {}
+
   reInitialize(account: AccountStateModel): void {}
 }
