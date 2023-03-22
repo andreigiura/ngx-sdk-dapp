@@ -14,6 +14,7 @@ import { ParseAmountPipe } from './pipes/parseAmount/parse-amount.pipe';
 import { TransactionsState } from './ngxs/account/transactions.slice';
 import { TrimStrPipe } from './pipes/trimStr/trim-str.pipe';
 import { TimeAgoPipe } from './pipes/timeAgo/time-ago.pipe';
+import { AddressToFormattedBalancePipe } from './pipes/addressToFormattedBalance/address-to-formatted-balance.pipe';
 
 export class MyStorageEngine implements StorageEngine {
   static STORAGE_PREFIX = 'ngx-sdk-dapp_';
@@ -43,7 +44,13 @@ export class MyStorageEngine implements StorageEngine {
 }
 
 @NgModule({
-  declarations: [FormatAmountPipe, ParseAmountPipe, TrimStrPipe, TimeAgoPipe],
+  declarations: [
+    FormatAmountPipe,
+    ParseAmountPipe,
+    TrimStrPipe,
+    TimeAgoPipe,
+    AddressToFormattedBalancePipe,
+  ],
   imports: [
     NgxsModule.forRoot([AccountState, TransactionsState]),
     NgxsStoragePluginModule.forRoot(),
@@ -57,6 +64,12 @@ export class MyStorageEngine implements StorageEngine {
       useClass: MyStorageEngine,
     },
   ],
-  exports: [FormatAmountPipe, ParseAmountPipe, TrimStrPipe, TimeAgoPipe],
+  exports: [
+    FormatAmountPipe,
+    ParseAmountPipe,
+    TrimStrPipe,
+    TimeAgoPipe,
+    AddressToFormattedBalancePipe,
+  ],
 })
 export class NgxSdkDappModule {}

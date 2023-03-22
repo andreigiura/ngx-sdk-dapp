@@ -20,7 +20,7 @@ import {
   providedIn: 'root',
 })
 export class AccountService {
-  @Select() account$: Observable<AccountStateModel> | undefined;
+  @Select() public account$: Observable<AccountStateModel> | undefined;
   @Select(actionsExecuting([LoginAccount, RefetchAccountData]))
   accountDataLoading$: Observable<ActionsExecuting[]> | undefined;
 

@@ -3,10 +3,11 @@
     <fa-icon [icon]="faAngular" class="text-danger"> </fa-icon>Angular Example
     DApp
   </div>
-  <div *ngIf="!qrCodeStr" class="card-body bg-light">
+  <div *ngIf="!qrCodeStr && !ledgerIsLoading" class="card-body bg-light">
     <h5 class="card-title text-center mb-5">
       This is an MultiversX DApp sample.
     </h5>
+
     <h6 class="card-subtitle mb-2 text-muted text-center">
       Pick a login method
     </h6>
@@ -23,9 +24,10 @@
 
       <button
         style="min-width: 150px"
-        ngbTooltip="Provider not implemented"
         type="button"
-        class="btn btn-secondary me-2 m-1"
+        *ngIf="!authService.isAuthenticated()"
+        class="btn btn-primary me-2 m-1"
+        (click)="connectBtnHandler(allProviders.Ledger)"
       >
         Ledger
       </button>
@@ -82,6 +84,39 @@
       {{ xPortalError }}
     </div>
   </div>
+
+  <div
+    class="text-center mt-5"
+    *ngIf="ledgerIsLoading && !ledgerError && !ledgerAccounts?.length"
+  >
+    <h5>Ledger is loading...</h5>
+    <div class="spinner-border" role="status">
+      <span class="sr-only">Loading...</span>
+    </div>
+  </div>
+
+  <div class="text-center mt-5 text-danger mb-5" *ngIf="ledgerError">
+    <fa-icon [icon]="faError" class="text-secondary" [size]="'4x'"> </fa-icon>
+    <h6 class="mt-2">{{ ledgerError }}</h6>
+
+    <button
+      style="min-width: 150px"
+      type="button"
+      *ngIf="!authService.isAuthenticated()"
+      class="btn btn-primary me-2 m-1"
+      (click)="connectBtnHandler(allProviders.Ledger); ledgerError = ''"
+    >
+      Try again
+    </button>
+  </div>
+
+  <div *ngIf="ledgerAccounts?.length" class="p-4">
+    <app-ledger-screen
+      [ledgerAccounts]="ledgerAccounts"
+      (resetLedgerLogin)="resetLedgerLogin()"
+    ></app-ledger-screen>
+  </div>
+
   <h5 class="text-center mt-3">
     Open for contributions
     <a href="https://github.com/andreigiura/ngx-sdk-dapp" target="_blank"

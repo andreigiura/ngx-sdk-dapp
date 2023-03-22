@@ -18,6 +18,7 @@ export interface AccountStateModel {
   balance: string;
   loginTimestamp: number;
   nonce: number;
+  ledgerIndex?: number;
 }
 export const AccountInitialState = {
   address: '',

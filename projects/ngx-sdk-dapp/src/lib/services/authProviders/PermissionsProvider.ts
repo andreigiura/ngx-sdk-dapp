@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
 import { IPlainTransactionObject } from '@multiversx/sdk-core/out';
-import { first, Subscription, take, takeWhile } from 'rxjs';
+import { Subscription, takeWhile } from 'rxjs';
 import { AccountService } from '../account/account.service';
 import { AuthenticationService } from '../authentication/authentication.service';
 import { ExtensionProviderService } from './extension/extensionProvider.service';
-import { GenericProvider, ProvidersType } from './genericProvider';
+import { ProvidersType } from './genericProvider';
+import { LedgerProviderService } from './ledger/ledger-provider.service';
 import { WebWalletProviderService } from './webWallet/web-walletProvider.service';
 import { XPortalProviderService } from './xPortal/x-portal.service';
 
@@ -12,6 +13,7 @@ type AllProvidersType =
   | ExtensionProviderService
   | XPortalProviderService
   | WebWalletProviderService
+  | LedgerProviderService
   | null;
 
 @Injectable({
@@ -25,6 +27,7 @@ export class PermissionsProviderService {
     private extensionProvider: ExtensionProviderService,
     private webWalletProvider: WebWalletProviderService,
     private xportalProvider: XPortalProviderService,
+    private ledgerProvider: LedgerProviderService,
     accountService: AccountService,
     authService: AuthenticationService
   ) {
@@ -63,6 +66,10 @@ export class PermissionsProviderService {
 
       case ProvidersType.XPortal:
         this.provider = this.xportalProvider;
+        break;
+
+      case ProvidersType.Ledger:
+        this.provider = this.ledgerProvider;
         break;
       default:
         this.provider = null;
