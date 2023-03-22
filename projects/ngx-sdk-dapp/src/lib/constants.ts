@@ -5,3 +5,5 @@ export const GAS_PRICE = 1_000_000_000;
 export const DECIMALS = 18;
 export const DIGITS = 4;
 export const ZERO = '0';
+export const MULTIVERSX_CANCEL_ACTION = 'multiversx_cancelAction';
+export const ERD_CANCEL_ACTION = 'erd_cancelAction';

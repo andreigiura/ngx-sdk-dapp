@@ -34,3 +34,7 @@ export class SetTransactionHashes {
   static readonly type = '[Transactions] Set Transaction Hashes';
   constructor(public payload: { id: number; hashes: string[] }) {}
 }
+
+export class CancelPendingSignature {
+  static readonly type = '[Transactions] Cancel Pending Signature';
+}

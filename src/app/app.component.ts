@@ -41,6 +41,7 @@ import { dashboardModuleRoutes } from './modules/dashboard/dashboard-routing.mod
       </div>
     </header>
     <div class="container">
+      <app-awaiting-signature></app-awaiting-signature>
       <router-outlet> </router-outlet>
     </div>
     <app-app-toasts></app-app-toasts>

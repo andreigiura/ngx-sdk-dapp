@@ -47,7 +47,7 @@ export class DashboardHomeComponent {
       });
 
     transactionsService
-      .hasTransactionsInProgress()
+      .hasTransactionsInStatus(TxStatusEnum.SEND_IN_PROGRESS)
       .subscribe((hasTransactionsInProgress) => {
         this.transactionInProgress = hasTransactionsInProgress;
       });

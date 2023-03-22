@@ -92,6 +92,14 @@ export class PermissionsProviderService {
     throw new Error('Provider is not set');
   }
 
+  public async cancelAction(): Promise<void> {
+    if (this._provider && this._provider.cancelAction) {
+      this._provider.cancelAction();
+      return;
+    }
+    throw new Error('Provider is not set123');
+  }
+
   public sendTransactions(
     transactions: IPlainTransactionObject[],
     txId: number
