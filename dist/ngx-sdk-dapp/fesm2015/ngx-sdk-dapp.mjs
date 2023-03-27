@@ -1065,6 +1065,7 @@ class WebWalletProviderService extends GenericProvider {
             .pipe(take(1))
             .subscribe((event) => {
             const pathname = event.url.split('?')[0];
+            console.log('pathname', pathname);
             this.route.queryParams.pipe(take(1)).subscribe((params) => {
                 console.log('herere', params);
                 if (params['walletProviderStatus'] === 'transactionsSigned' &&
@@ -1083,10 +1084,12 @@ class WebWalletProviderService extends GenericProvider {
         });
     }
     transactionsFailedCallback(signSession, pathname) {
+        console.log('useP1', pathname);
         this.router.navigate([pathname]);
         this.addFailedTransactionsToState(signSession);
     }
     transactionsCancelledCallback(signSession, pathname) {
+        console.log('useP2', pathname);
         this.router.navigate([pathname]);
         this.addToCancelledTransaction(signSession);
     }
@@ -1168,7 +1171,6 @@ class WebWalletProviderService extends GenericProvider {
                 const tx1 = Transaction.fromPlainObject(tx);
                 return tx1;
             });
-            console.log('hererererererere');
             try {
                 const url = new URL(window.location.href);
                 url.searchParams.append('signSession', txId.toString());

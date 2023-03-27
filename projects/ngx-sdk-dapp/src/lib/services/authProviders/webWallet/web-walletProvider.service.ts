@@ -41,6 +41,7 @@ export class WebWalletProviderService extends GenericProvider {
       .subscribe((event: any) => {
         const pathname = event.url.split('?')[0];
 
+        console.log('pathname', pathname);
         this.route.queryParams.pipe(take(1)).subscribe((params) => {
           console.log('herere', params);
           if (
@@ -68,11 +69,13 @@ export class WebWalletProviderService extends GenericProvider {
   }
 
   private transactionsFailedCallback(signSession: number, pathname: string) {
+    console.log('useP1', pathname);
     this.router.navigate([pathname]);
     this.addFailedTransactionsToState(signSession);
   }
 
   private transactionsCancelledCallback(signSession: number, pathname: string) {
+    console.log('useP2', pathname);
     this.router.navigate([pathname]);
     this.addToCancelledTransaction(signSession);
   }
@@ -174,8 +177,6 @@ export class WebWalletProviderService extends GenericProvider {
       const tx1 = Transaction.fromPlainObject(tx);
       return tx1;
     });
-
-    console.log('hererererererere');
 
     try {
       const url = new URL(window.location.href);
