@@ -1025,7 +1025,7 @@ class WebWalletProviderService extends GenericProvider {
                 console.log('herere', params);
                 if (params['walletProviderStatus'] === 'transactionsSigned' &&
                     params['signSession']) {
-                    this.transactionsSuccessCallback(parseInt(params['signSession']));
+                    this.transactionsSuccessCallback(parseInt(params['signSession']), pathname);
                 }
                 if (params['signSession'] && params['status'] === 'failed') {
                     this.transactionsFailedCallback(parseInt(params['signSession']), pathname);
@@ -1048,7 +1048,7 @@ class WebWalletProviderService extends GenericProvider {
         this.router.navigate([pathname]);
         this.addToCancelledTransaction(signSession);
     }
-    transactionsSuccessCallback(signSession) {
+    transactionsSuccessCallback(signSession, pathname) {
         const transactions = this.walletProvider?.getTransactionsFromWalletUrl();
         if (!transactions)
             return;
@@ -1057,8 +1057,7 @@ class WebWalletProviderService extends GenericProvider {
                 tx.data = Buffer.from(tx.data ?? '', 'utf8').toString('base64');
             }
         });
-        const url = new URL(window.location.href);
-        this.router.navigate([url.pathname]);
+        this.router.navigate([pathname]);
         this.addSignedTransactionsToState(transactions, signSession);
     }
     async connectCallback(address, signature) {
