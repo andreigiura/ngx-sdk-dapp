@@ -198,7 +198,7 @@ class AccountApiService {
         return this.http.post(`${this.config.gatewayURL}/transaction/send-multiple`, transactions);
     }
     trackTransactions(transactionHashes) {
-        return this.http.get(`${this.config.apiURL}/accounts/${this.accountService.account.address}/transactions?hashes=${transactionHashes.join(',')}&fields=status`);
+        return this.http.get(`${this.config.apiURL}/accounts/${this.accountService.account.address}/transactions?hashes=${transactionHashes.join(',')}&fields=status&withScResults=true`);
     }
     getTransactions(listSize, sender, receiver) {
         return this.http.get(`${this.config.apiURL}/transactions?size=${listSize}&sender=${sender}&receiver=${receiver}&condition=must&fields=txHash%2Ctimestamp%2Csender%2CsenderShard%2Creceiver%2CreceiverShard%2Cstatus%2Cvalue%2Cfunction`);
@@ -1012,42 +1012,6 @@ class WebWalletProviderService extends GenericProvider {
         this.router = router;
         this.route = route;
         this.config = config;
-        this.transactionsFailedCallback = (signSession) => {
-            const url = new URL(window.location.href);
-            this.router.navigate([url.pathname]);
-            this.addFailedTransactionsToState(signSession);
-        };
-        this.transactionsCancelledCallback = (signSession) => {
-            const url = new URL(window.location.href);
-            this.router.navigate([url.pathname]);
-            this.addToCancelledTransaction(signSession);
-        };
-        this.transactionsSuccessCallback = (signSession) => {
-            const transactions = this.walletProvider?.getTransactionsFromWalletUrl();
-            if (!transactions)
-                return;
-            transactions.map((tx) => {
-                if (tx.data) {
-                    tx.data = Buffer.from(tx.data ?? '', 'utf8').toString('base64');
-                }
-            });
-            const url = new URL(window.location.href);
-            this.router.navigate([url.pathname]);
-            this.addSignedTransactionsToState(transactions, signSession);
-        };
-        this.connectCallback = (address, signature) => {
-            const accessToken = new NativeAuthClient().getToken(address, localStorage.getItem('initToken'), signature);
-            localStorage.removeItem('initToken');
-            this.localStore.dispatch(new LoginAccount({
-                address,
-                accessToken,
-                currentProvider: ProvidersType.WebWallet,
-            }));
-            this.walletProvider = new WalletProvider(`https://wallet.multiversx.com${DAPP_INIT_ROUTE}`);
-            const navAfterConnectRoute = localStorage.getItem('navAfterConnectRoute');
-            if (navAfterConnectRoute)
-                this.router.navigate([navAfterConnectRoute]);
-        };
         this.localStore = store;
         this.localAccount = accountService;
         this.route.queryParams.subscribe((params) => {
@@ -1064,6 +1028,43 @@ class WebWalletProviderService extends GenericProvider {
             if (params['address'] && params['signature'])
                 this.connectCallback(params['address'], params['signature']);
         });
+    }
+    transactionsFailedCallback(signSession) {
+        const url = new URL(window.location.href);
+        this.router.navigate([url.pathname]);
+        this.addFailedTransactionsToState(signSession);
+    }
+    transactionsCancelledCallback(signSession) {
+        const url = new URL(window.location.href);
+        this.router.navigate([url.pathname]);
+        this.addToCancelledTransaction(signSession);
+    }
+    transactionsSuccessCallback(signSession) {
+        const transactions = this.walletProvider?.getTransactionsFromWalletUrl();
+        if (!transactions)
+            return;
+        transactions.map((tx) => {
+            if (tx.data) {
+                tx.data = Buffer.from(tx.data ?? '', 'utf8').toString('base64');
+            }
+        });
+        const url = new URL(window.location.href);
+        this.router.navigate([url.pathname]);
+        this.addSignedTransactionsToState(transactions, signSession);
+    }
+    async connectCallback(address, signature) {
+        const accessToken = new NativeAuthClient().getToken(address, localStorage.getItem('initToken'), signature);
+        localStorage.removeItem('initToken');
+        this.localStore.dispatch(new LoginAccount({
+            address,
+            accessToken,
+            currentProvider: ProvidersType.WebWallet,
+        }));
+        this.walletProvider = new WalletProvider(`https://wallet.multiversx.com${DAPP_INIT_ROUTE}`);
+        const navAfterConnectRoute = localStorage.getItem('navAfterConnectRoute');
+        if (navAfterConnectRoute)
+            await this.router.navigate([navAfterConnectRoute]);
+        window.location.reload();
     }
     async connect(navAfterConnectRoute) {
         const { client, init } = await super.connect(navAfterConnectRoute);
