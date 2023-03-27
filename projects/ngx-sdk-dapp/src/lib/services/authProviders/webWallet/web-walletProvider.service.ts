@@ -50,19 +50,19 @@ export class WebWalletProviderService extends GenericProvider {
     });
   }
 
-  private transactionsFailedCallback = (signSession: number) => {
+  private transactionsFailedCallback(signSession: number) {
     const url = new URL(window.location.href);
     this.router.navigate([url.pathname]);
     this.addFailedTransactionsToState(signSession);
-  };
+  }
 
-  private transactionsCancelledCallback = (signSession: number) => {
+  private transactionsCancelledCallback(signSession: number) {
     const url = new URL(window.location.href);
     this.router.navigate([url.pathname]);
     this.addToCancelledTransaction(signSession);
-  };
+  }
 
-  private transactionsSuccessCallback = (signSession: number) => {
+  private transactionsSuccessCallback(signSession: number) {
     const transactions = this.walletProvider?.getTransactionsFromWalletUrl();
     if (!transactions) return;
 
@@ -75,8 +75,8 @@ export class WebWalletProviderService extends GenericProvider {
     const url = new URL(window.location.href);
     this.router.navigate([url.pathname]);
     this.addSignedTransactionsToState(transactions, signSession);
-  };
-  private connectCallback = (address: string, signature: string) => {
+  }
+  private async connectCallback(address: string, signature: string) {
     const accessToken = new NativeAuthClient().getToken(
       address,
       localStorage.getItem('initToken')!,
@@ -98,8 +98,11 @@ export class WebWalletProviderService extends GenericProvider {
     );
 
     const navAfterConnectRoute = localStorage.getItem('navAfterConnectRoute');
-    if (navAfterConnectRoute) this.router.navigate([navAfterConnectRoute]);
-  };
+    if (navAfterConnectRoute)
+      await this.router.navigate([navAfterConnectRoute]);
+
+    window.location.reload();
+  }
 
   override async connect(navAfterConnectRoute: string): Promise<{
     client: NativeAuthClient;
@@ -134,6 +137,7 @@ export class WebWalletProviderService extends GenericProvider {
       this.localAccount.account.currentProvider !== ProvidersType.WebWallet
     )
       return;
+
     this.walletProvider = new WalletProvider(
       `${this.config.walletURL}${DAPP_INIT_ROUTE}`
     );

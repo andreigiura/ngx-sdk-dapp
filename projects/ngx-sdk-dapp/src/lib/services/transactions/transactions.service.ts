@@ -1,15 +1,7 @@
 import { Inject, Injectable, TemplateRef } from '@angular/core';
 import { IPlainTransactionObject, Transaction } from '@multiversx/sdk-core/out';
 import { Select, Store } from '@ngxs/store';
-import {
-  every,
-  lastValueFrom,
-  map,
-  Observable,
-  skipWhile,
-  take,
-  takeWhile,
-} from 'rxjs';
+import { lastValueFrom, map, Observable, skipWhile, take } from 'rxjs';
 import { DappConfig, DAPP_CONFIG } from '../../config';
 import { AccountApiService } from '../../ngxs/account/account-api.service';
 import {
