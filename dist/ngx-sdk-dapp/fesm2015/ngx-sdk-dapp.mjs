@@ -7,7 +7,7 @@ import { STORAGE_ENGINE, NgxsStoragePluginModule } from '@ngxs/storage-plugin';
 import * as i1 from '@ngxs/store';
 import { Select, Action, State, NgxsModule } from '@ngxs/store';
 import { __awaiter, __decorate, __param } from 'tslib';
-import { lastValueFrom, Observable, takeWhile, map, skipWhile, take } from 'rxjs';
+import { lastValueFrom, filter, take, Observable, takeWhile, map, skipWhile } from 'rxjs';
 import { NativeAuthClient } from '@multiversx/sdk-native-auth-client';
 import * as i1$1 from '@angular/common/http';
 import { HttpClientModule } from '@angular/common/http';
@@ -15,7 +15,7 @@ import { TokenPayment, Address } from '@multiversx/sdk-core';
 import BigNumber from 'bignumber.js';
 import { CommonModule } from '@angular/common';
 import * as i4 from '@angular/router';
-import { Router } from '@angular/router';
+import { Router, NavigationEnd } from '@angular/router';
 import { isString as isString$1 } from 'lodash';
 import { Address as Address$1, TransactionPayload, Transaction } from '@multiversx/sdk-core/out';
 import { ExtensionProvider } from '@multiversx/sdk-extension-provider/out';
@@ -1052,36 +1052,42 @@ i0.ɵɵngDeclareClassMetadata({ minVersion: "12.0.0", version: "15.2.1", ngImpor
 
 const DAPP_INIT_ROUTE = '/dapp/init';
 class WebWalletProviderService extends GenericProvider {
-    constructor(store, accountService, authenticationService, router, route, config) {
+    constructor(store, accountService, authenticationService, router, route, config, activatedRoute) {
         super(store, accountService, authenticationService, config);
         this.router = router;
         this.route = route;
         this.config = config;
+        this.activatedRoute = activatedRoute;
         this.localStore = store;
         this.localAccount = accountService;
-        this.route.queryParams.subscribe((params) => {
-            if (params['walletProviderStatus'] === 'transactionsSigned' &&
-                params['signSession']) {
-                this.transactionsSuccessCallback(parseInt(params['signSession']));
-            }
-            if (params['signSession'] && params['status'] === 'failed') {
-                this.transactionsFailedCallback(parseInt(params['signSession']));
-            }
-            if (params['signSession'] && params['status'] === 'cancelled') {
-                this.transactionsCancelledCallback(parseInt(params['signSession']));
-            }
-            if (params['address'] && params['signature'])
-                this.connectCallback(params['address'], params['signature']);
+        router.events
+            .pipe(filter((event) => event instanceof NavigationEnd))
+            .pipe(take(1))
+            .subscribe((event) => {
+            const pathname = event.url.split('?')[0];
+            this.route.queryParams.pipe(take(1)).subscribe((params) => {
+                console.log('herere', params);
+                if (params['walletProviderStatus'] === 'transactionsSigned' &&
+                    params['signSession']) {
+                    this.transactionsSuccessCallback(parseInt(params['signSession']));
+                }
+                if (params['signSession'] && params['status'] === 'failed') {
+                    this.transactionsFailedCallback(parseInt(params['signSession']), pathname);
+                }
+                if (params['signSession'] && params['status'] === 'cancelled') {
+                    this.transactionsCancelledCallback(parseInt(params['signSession']), pathname);
+                }
+                if (params['address'] && params['signature'])
+                    this.connectCallback(params['address'], params['signature']);
+            });
         });
     }
-    transactionsFailedCallback(signSession) {
-        const url = new URL(window.location.href);
-        this.router.navigate([url.pathname]);
+    transactionsFailedCallback(signSession, pathname) {
+        this.router.navigate([pathname]);
         this.addFailedTransactionsToState(signSession);
     }
-    transactionsCancelledCallback(signSession) {
-        const url = new URL(window.location.href);
-        this.router.navigate([url.pathname]);
+    transactionsCancelledCallback(signSession, pathname) {
+        this.router.navigate([pathname]);
         this.addToCancelledTransaction(signSession);
     }
     transactionsSuccessCallback(signSession) {
@@ -1176,7 +1182,7 @@ class WebWalletProviderService extends GenericProvider {
         });
     }
 }
-WebWalletProviderService.ɵfac = i0.ɵɵngDeclareFactory({ minVersion: "12.0.0", version: "15.2.1", ngImport: i0, type: WebWalletProviderService, deps: [{ token: i1.Store }, { token: AccountService }, { token: AuthenticationService }, { token: i4.Router }, { token: i4.ActivatedRoute }, { token: DAPP_CONFIG }], target: i0.ɵɵFactoryTarget.Injectable });
+WebWalletProviderService.ɵfac = i0.ɵɵngDeclareFactory({ minVersion: "12.0.0", version: "15.2.1", ngImport: i0, type: WebWalletProviderService, deps: [{ token: i1.Store }, { token: AccountService }, { token: AuthenticationService }, { token: i4.Router }, { token: i4.ActivatedRoute }, { token: DAPP_CONFIG }, { token: i4.ActivatedRoute }], target: i0.ɵɵFactoryTarget.Injectable });
 WebWalletProviderService.ɵprov = i0.ɵɵngDeclareInjectable({ minVersion: "12.0.0", version: "15.2.1", ngImport: i0, type: WebWalletProviderService, providedIn: 'root' });
 i0.ɵɵngDeclareClassMetadata({ minVersion: "12.0.0", version: "15.2.1", ngImport: i0, type: WebWalletProviderService, decorators: [{
             type: Injectable,
@@ -1187,7 +1193,7 @@ i0.ɵɵngDeclareClassMetadata({ minVersion: "12.0.0", version: "15.2.1", ngImpor
         return [{ type: i1.Store }, { type: AccountService }, { type: AuthenticationService }, { type: i4.Router }, { type: i4.ActivatedRoute }, { type: undefined, decorators: [{
                         type: Inject,
                         args: [DAPP_CONFIG]
-                    }] }];
+                    }] }, { type: i4.ActivatedRoute }];
     } });
 
 class XPortalProviderService extends GenericProvider {

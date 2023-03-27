@@ -12,10 +12,11 @@ export declare class WebWalletProviderService extends GenericProvider {
     private router;
     private route;
     config: DappConfig;
+    private activatedRoute;
     private localStore;
     private localAccount;
     private walletProvider;
-    constructor(store: Store, accountService: AccountService, authenticationService: AuthenticationService, router: Router, route: ActivatedRoute, config: DappConfig);
+    constructor(store: Store, accountService: AccountService, authenticationService: AuthenticationService, router: Router, route: ActivatedRoute, config: DappConfig, activatedRoute: ActivatedRoute);
     private transactionsFailedCallback;
     private transactionsCancelledCallback;
     private transactionsSuccessCallback;
