@@ -26,6 +26,7 @@ export declare class WebWalletProviderService extends GenericProvider {
     }>;
     logout(): Promise<boolean>;
     reInitialize(): void;
+    cancelAction(): void;
     sendTransactions(transactions: IPlainTransactionObject[], txId: number): Promise<void>;
     static ɵfac: i0.ɵɵFactoryDeclaration<WebWalletProviderService, never>;
     static ɵprov: i0.ɵɵInjectableDeclaration<WebWalletProviderService>;

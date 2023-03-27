@@ -1,6 +1,6 @@
 {
   "name": "ngx-sdk-dapp",
-  "version": "0.0.0-watch+1679908761538",
+  "version": "0.0.0-watch+1679912153973",
   "peerDependencies": {
     "@ngxs/store": "^3.7.6",
     "@angular/common": "15.2.1",

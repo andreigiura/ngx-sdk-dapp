@@ -1090,11 +1090,18 @@ class WebWalletProviderService extends GenericProvider {
             return;
         this.walletProvider = new WalletProvider(`${this.config.walletURL}${DAPP_INIT_ROUTE}`);
     }
+    cancelAction() {
+        if (!this.walletProvider) {
+            return;
+        }
+        this.localStore.dispatch(new CancelPendingSignature());
+    }
     async sendTransactions(transactions, txId) {
         const txArray = transactions.map((tx) => {
             const tx1 = Transaction.fromPlainObject(tx);
             return tx1;
         });
+        console.log('hererererererere');
         try {
             const url = new URL(window.location.href);
             url.searchParams.append('signSession', txId.toString());
@@ -1224,6 +1231,9 @@ class XPortalProviderService extends GenericProvider {
         }
     }
     async reInitialize() {
+        if (this.localAccountService &&
+            this.localAccountService.account.currentProvider !== ProvidersType.XPortal)
+            return '';
         try {
             this.walletConnect = new WalletConnectV2Provider({
                 onClientLogin: () => {
