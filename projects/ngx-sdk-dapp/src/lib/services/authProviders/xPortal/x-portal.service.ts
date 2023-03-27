@@ -179,6 +179,12 @@ export class XPortalProviderService extends GenericProvider {
   }
 
   override async reInitialize(): Promise<string> {
+    if (
+      this.localAccountService &&
+      this.localAccountService.account.currentProvider !== ProvidersType.XPortal
+    )
+      return '';
+
     try {
       this.walletConnect = new WalletConnectV2Provider(
         {
