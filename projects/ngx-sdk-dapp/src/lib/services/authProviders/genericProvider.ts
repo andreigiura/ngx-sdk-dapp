@@ -6,6 +6,7 @@ import { DappConfig, DAPP_CONFIG } from '../../config';
 import { ResetAccount } from '../../ngxs/account/account.actions';
 import { AccountStateModel } from '../../ngxs/account/account.slice';
 import {
+  CancelPendingSignature,
   ChangeTxStatus,
   MoveToSignedTransactions,
   ResetTransactions,
@@ -92,7 +93,9 @@ export class GenericProvider {
     );
   }
 
-  cancelAction() {}
+  cancelAction() {
+    this.store.dispatch(new CancelPendingSignature());
+  }
 
   reInitialize(account: AccountStateModel): void {}
 }

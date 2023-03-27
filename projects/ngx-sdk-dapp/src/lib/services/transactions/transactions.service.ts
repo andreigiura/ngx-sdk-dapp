@@ -5,8 +5,6 @@ import { lastValueFrom, map, Observable, skipWhile, take } from 'rxjs';
 import { DappConfig, DAPP_CONFIG } from '../../config';
 import { AccountApiService } from '../../ngxs/account/account-api.service';
 import {
-  AddTransactionsBatch,
-  CancelPendingSignature,
   ChangeTxStatus,
   RemoveTransaction,
   ResetTransactions,
@@ -16,7 +14,6 @@ import {
   SingleTransactionModel,
   TransactionsStateModel,
 } from '../../ngxs/account/transactions.slice';
-import { ParseAmountPipe } from '../../pipes/parseAmount/parse-amount.pipe';
 import { TxStatusEnum } from '../../types';
 import { AccountService } from '../account/account.service';
 import { PermissionsProviderService } from '../authProviders/PermissionsProvider';
@@ -61,7 +58,6 @@ export class TransactionsService {
     private store: Store,
     private accountApi: AccountApiService,
     private accountService: AccountService,
-    private parseAmount: ParseAmountPipe,
     @Inject(DAPP_CONFIG) public config: DappConfig
   ) {
     setTimeout(() => {
@@ -114,7 +110,6 @@ export class TransactionsService {
     window.onbeforeunload = (e) => {
       if (this.permissionsProvider.provider?.cancelAction) {
         this.permissionsProvider.provider.cancelAction();
-        this.store.dispatch(new CancelPendingSignature());
       }
     };
   }
@@ -293,40 +288,6 @@ export class TransactionsService {
         })
       );
     }
-  }
-
-  public sendTransactions(
-    transactions: Omit<
-      IPlainTransactionObject,
-      'nonce' | 'sender' | 'chainID' | 'version'
-    >[],
-    txOptions: TransactionsOptions
-  ): number {
-    const txId = Date.now();
-
-    const transactionsToSend = transactions.map((tx, index) => ({
-      ...tx,
-      nonce: this.accountService.account.nonce + index,
-      sender: this.accountService.account.address,
-      data: Buffer.from(tx.data ?? '', 'utf8').toString('base64'),
-      value: this.parseAmount.transform(tx.value),
-      chainID: this.config.chainID,
-      //TODO: change version if needed (ledger, guardians, etc)
-      version: 1,
-    }));
-
-    this.store.dispatch(
-      new AddTransactionsBatch({
-        id: txId,
-        transactions: transactionsToSend,
-        status: TxStatusEnum.PENDING_SIGNATURE,
-        options: txOptions,
-      })
-    );
-
-    this.permissionsProvider.sendTransactions(transactionsToSend, txId);
-
-    return txId;
   }
 
   show(

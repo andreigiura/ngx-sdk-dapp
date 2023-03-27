@@ -18,7 +18,6 @@ import {
   ERD_CANCEL_ACTION,
   MULTIVERSX_CANCEL_ACTION,
 } from '../../../constants';
-import { CancelPendingSignature } from '../../../ngxs/account/transactions.actions';
 
 @Injectable({
   providedIn: 'root',
@@ -230,7 +229,7 @@ export class XPortalProviderService extends GenericProvider {
         return;
       }
 
-      this.localStore.dispatch(new CancelPendingSignature());
+      super.cancelAction();
 
       await this.walletConnect?.sendCustomRequest?.({
         request: {

@@ -3,6 +3,7 @@ import { faArrowDown, faArrowUp } from '@fortawesome/free-solid-svg-icons';
 import {
   AccountService,
   GAS_PRICE,
+  PermissionsProviderService,
   TransactionsService,
   TxStatusEnum,
 } from 'ngx-sdk-dapp';
@@ -27,26 +28,27 @@ export class DashboardHomeComponent {
 
   constructor(
     public accountService: AccountService,
+    private permissionsService: PermissionsProviderService,
     private transactionsService: TransactionsService,
     private pingPongContractService: PingPongContractService
   ) {
     this.getTimeToPong();
 
-    transactionsService
+    this.transactionsService
       .watchTransactionByTitle('Ping Transaction', TxStatusEnum.SENT_SUCCESS)
       .subscribe(() => {
         this.accountService.refetchAccountData();
         this.getTimeToPong();
       });
 
-    transactionsService
+    this.transactionsService
       .watchTransactionByTitle('Pong Transaction', TxStatusEnum.SENT_SUCCESS)
       .subscribe(() => {
         this.accountService.refetchAccountData();
         this.hasPing = true;
       });
 
-    transactionsService
+    this.transactionsService
       .hasTransactionsInStatus(TxStatusEnum.SEND_IN_PROGRESS)
       .subscribe((hasTransactionsInProgress) => {
         this.transactionInProgress = hasTransactionsInProgress;
@@ -78,7 +80,7 @@ export class DashboardHomeComponent {
   }
 
   async sendPingTx() {
-    this.transactionsService.sendTransactions(
+    this.permissionsService.sendTransactions(
       [
         {
           value: '1',
@@ -93,7 +95,7 @@ export class DashboardHomeComponent {
   }
 
   async sendPongTx() {
-    this.transactionsService.sendTransactions(
+    this.permissionsService.sendTransactions(
       [
         {
           value: '0',

@@ -1,8 +1,14 @@
-import { Injectable } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
 import { IPlainTransactionObject } from '@multiversx/sdk-core/out';
+import { Store } from '@ngxs/store';
 import { Subscription, takeWhile } from 'rxjs';
+import { DappConfig, DAPP_CONFIG } from '../../config';
+import { AddTransactionsBatch } from '../../ngxs/account/transactions.actions';
+import { ParseAmountPipe } from '../../pipes/parseAmount/parse-amount.pipe';
+import { TxStatusEnum } from '../../types';
 import { AccountService } from '../account/account.service';
 import { AuthenticationService } from '../authentication/authentication.service';
+import { TransactionsOptions } from '../transactions/transactions.service';
 import { ExtensionProviderService } from './extension/extensionProvider.service';
 import { ProvidersType } from './genericProvider';
 import { LedgerProviderService } from './ledger/ledger-provider.service';
@@ -29,7 +35,10 @@ export class PermissionsProviderService {
     private xportalProvider: XPortalProviderService,
     private ledgerProvider: LedgerProviderService,
     accountService: AccountService,
-    authService: AuthenticationService
+    authService: AuthenticationService,
+    private parseAmount: ParseAmountPipe,
+    private store: Store,
+    @Inject(DAPP_CONFIG) public config: DappConfig
   ) {
     this._provider = null;
     this.localAccountService = accountService;
@@ -108,11 +117,38 @@ export class PermissionsProviderService {
   }
 
   public sendTransactions(
-    transactions: IPlainTransactionObject[],
-    txId: number
-  ) {
+    transactions: Omit<
+      IPlainTransactionObject,
+      'nonce' | 'sender' | 'chainID' | 'version'
+    >[],
+    txOptions: TransactionsOptions
+  ): number {
     if (this._provider) {
-      return this._provider.sendTransactions(transactions, txId);
+      const txId = Date.now();
+
+      const transactionsToSend = transactions.map((tx, index) => ({
+        ...tx,
+        nonce: this.localAccountService.account.nonce + index,
+        sender: this.localAccountService.account.address,
+        data: Buffer.from(tx.data ?? '', 'utf8').toString('base64'),
+        value: this.parseAmount.transform(tx.value),
+        chainID: this.config.chainID,
+        //TODO: change version if needed (ledger, guardians, etc)
+        version: 1,
+      }));
+
+      this.store.dispatch(
+        new AddTransactionsBatch({
+          id: txId,
+          transactions: transactionsToSend,
+          status: TxStatusEnum.PENDING_SIGNATURE,
+          options: txOptions,
+        })
+      );
+
+      this._provider.sendTransactions(transactionsToSend, txId);
+
+      return txId;
     }
     throw new Error('Provider is not set');
   }

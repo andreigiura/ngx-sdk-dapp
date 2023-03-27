@@ -41,9 +41,7 @@ export class WebWalletProviderService extends GenericProvider {
       .subscribe((event: any) => {
         const pathname = event.url.split('?')[0];
 
-        console.log('pathname', pathname);
         this.route.queryParams.pipe(take(1)).subscribe((params) => {
-          console.log('herere', params);
           if (
             params['walletProviderStatus'] === 'transactionsSigned' &&
             params['signSession']
@@ -72,13 +70,11 @@ export class WebWalletProviderService extends GenericProvider {
   }
 
   private transactionsFailedCallback(signSession: number, pathname: string) {
-    console.log('useP1', pathname);
     this.router.navigate([pathname]);
     this.addFailedTransactionsToState(signSession);
   }
 
   private transactionsCancelledCallback(signSession: number, pathname: string) {
-    console.log('useP2', pathname);
     this.router.navigate([pathname]);
     this.addToCancelledTransaction(signSession);
   }
@@ -168,7 +164,7 @@ export class WebWalletProviderService extends GenericProvider {
       return;
     }
 
-    this.localStore.dispatch(new CancelPendingSignature());
+    super.cancelAction();
   }
 
   override async sendTransactions(
