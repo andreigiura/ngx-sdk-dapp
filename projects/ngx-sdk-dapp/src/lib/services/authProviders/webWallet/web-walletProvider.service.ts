@@ -1,9 +1,10 @@
 import { Inject, Injectable } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { IPlainTransactionObject, Transaction } from '@multiversx/sdk-core/out';
 import { NativeAuthClient } from '@multiversx/sdk-native-auth-client';
 import { WalletProvider } from '@multiversx/sdk-web-wallet-provider/out';
 import { Store } from '@ngxs/store';
+import { filter, lastValueFrom, take } from 'rxjs';
 import { DappConfig, DAPP_CONFIG } from '../../../config';
 import { LoginAccount } from '../../../ngxs/account/account.actions';
 import { CancelPendingSignature } from '../../../ngxs/account/transactions.actions';
@@ -27,39 +28,52 @@ export class WebWalletProviderService extends GenericProvider {
     authenticationService: AuthenticationService,
     private router: Router,
     private route: ActivatedRoute,
-    @Inject(DAPP_CONFIG) override config: DappConfig
+    @Inject(DAPP_CONFIG) override config: DappConfig,
+    private activatedRoute: ActivatedRoute
   ) {
     super(store, accountService, authenticationService, config);
     this.localStore = store;
     this.localAccount = accountService;
 
-    this.route.queryParams.subscribe((params) => {
-      if (
-        params['walletProviderStatus'] === 'transactionsSigned' &&
-        params['signSession']
-      ) {
-        this.transactionsSuccessCallback(parseInt(params['signSession']));
-      }
-      if (params['signSession'] && params['status'] === 'failed') {
-        this.transactionsFailedCallback(parseInt(params['signSession']));
-      }
-      if (params['signSession'] && params['status'] === 'cancelled') {
-        this.transactionsCancelledCallback(parseInt(params['signSession']));
-      }
-      if (params['address'] && params['signature'])
-        this.connectCallback(params['address'], params['signature']);
-    });
+    router.events
+      .pipe(filter((event) => event instanceof NavigationEnd))
+      .pipe(take(1))
+      .subscribe((event: any) => {
+        const pathname = event.url.split('?')[0];
+
+        this.route.queryParams.pipe(take(1)).subscribe((params) => {
+          console.log('herere', params);
+          if (
+            params['walletProviderStatus'] === 'transactionsSigned' &&
+            params['signSession']
+          ) {
+            this.transactionsSuccessCallback(parseInt(params['signSession']));
+          }
+          if (params['signSession'] && params['status'] === 'failed') {
+            this.transactionsFailedCallback(
+              parseInt(params['signSession']),
+              pathname
+            );
+          }
+          if (params['signSession'] && params['status'] === 'cancelled') {
+            this.transactionsCancelledCallback(
+              parseInt(params['signSession']),
+              pathname
+            );
+          }
+          if (params['address'] && params['signature'])
+            this.connectCallback(params['address'], params['signature']);
+        });
+      });
   }
 
-  private transactionsFailedCallback(signSession: number) {
-    const url = new URL(window.location.href);
-    this.router.navigate([url.pathname]);
+  private transactionsFailedCallback(signSession: number, pathname: string) {
+    this.router.navigate([pathname]);
     this.addFailedTransactionsToState(signSession);
   }
 
-  private transactionsCancelledCallback(signSession: number) {
-    const url = new URL(window.location.href);
-    this.router.navigate([url.pathname]);
+  private transactionsCancelledCallback(signSession: number, pathname: string) {
+    this.router.navigate([pathname]);
     this.addToCancelledTransaction(signSession);
   }
 
