@@ -30,7 +30,9 @@ export class AccountApiService {
     return this.http.get(
       `${this.config.apiURL}/accounts/${
         this.accountService.account.address
-      }/transactions?hashes=${transactionHashes.join(',')}&fields=status`
+      }/transactions?hashes=${transactionHashes.join(
+        ','
+      )}&fields=status&withScResults=true`
     );
   }
 
